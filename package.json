@@ -1,0 +1,238 @@
+{
+  "name": "telegram-bridge",
+  "displayName": "Telegram Bridge",
+  "description": "Connect your VS Code to any Telegram bot seamlessly. Send messages, code snippets, build notifications and more — right from your IDE.",
+  "version": "1.0.0",
+  "publisher": "telegram-bridge",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Snippets",
+    "Visualization"
+  ],
+  "keywords": [
+    "telegram",
+    "bot",
+    "notifications",
+    "messaging",
+    "productivity",
+    "devtools",
+    "alerts",
+    "bridge"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "telegramBridge.configure",
+        "title": "Telegram Bridge: Configure Bot",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "telegramBridge.sendMessage",
+        "title": "Telegram Bridge: Send Message",
+        "icon": "$(comment)"
+      },
+      {
+        "command": "telegramBridge.sendSelection",
+        "title": "Telegram Bridge: Send Selected Code",
+        "icon": "$(code)"
+      },
+      {
+        "command": "telegramBridge.sendFile",
+        "title": "Telegram Bridge: Send Current File",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "telegramBridge.testConnection",
+        "title": "Telegram Bridge: Test Connection",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "telegramBridge.toggleNotifications",
+        "title": "Telegram Bridge: Toggle Build Notifications",
+        "icon": "$(bell)"
+      },
+      {
+        "command": "telegramBridge.sendScreenshot",
+        "title": "Telegram Bridge: Send Editor Screenshot",
+        "icon": "$(device-camera)"
+      },
+      {
+        "command": "telegramBridge.disconnect",
+        "title": "Telegram Bridge: Disconnect",
+        "icon": "$(debug-disconnect)"
+      },
+      {
+        "command": "telegramBridge.viewLogs",
+        "title": "Telegram Bridge: View Message Logs",
+        "icon": "$(list-unordered)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "telegramBridge.sendSelection",
+          "when": "editorHasSelection",
+          "group": "telegram@1"
+        },
+        {
+          "command": "telegramBridge.sendFile",
+          "group": "telegram@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "telegramBridge.sendFile",
+          "when": "telegramBridge.connected",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "telegramBridge.sendMessage",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t",
+        "when": "telegramBridge.connected"
+      },
+      {
+        "command": "telegramBridge.sendSelection",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s",
+        "when": "editorHasSelection && telegramBridge.connected"
+      }
+    ],
+    "configuration": {
+      "title": "Telegram Bridge",
+      "properties": {
+        "telegramBridge.botToken": {
+          "type": "string",
+          "default": "",
+          "description": "Your Telegram Bot API token (from @BotFather)",
+          "scope": "application"
+        },
+        "telegramBridge.chatId": {
+          "type": "string",
+          "default": "",
+          "description": "Target Telegram Chat ID or Channel username",
+          "scope": "application"
+        },
+        "telegramBridge.notifyOnBuildSuccess": {
+          "type": "boolean",
+          "default": true,
+          "description": "Send notification when build/task succeeds"
+        },
+        "telegramBridge.notifyOnBuildFailure": {
+          "type": "boolean",
+          "default": true,
+          "description": "Send notification when build/task fails"
+        },
+        "telegramBridge.notifyOnDebugStart": {
+          "type": "boolean",
+          "default": false,
+          "description": "Send notification when debug session starts"
+        },
+        "telegramBridge.notifyOnDebugStop": {
+          "type": "boolean",
+          "default": false,
+          "description": "Send notification when debug session stops"
+        },
+        "telegramBridge.notifyOnFileSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Send notification when a file is saved"
+        },
+        "telegramBridge.messagePrefix": {
+          "type": "string",
+          "default": "💻 VS Code",
+          "description": "Prefix added to all messages"
+        },
+        "telegramBridge.codeSnippetLanguage": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include language tag in code snippet messages"
+        },
+        "telegramBridge.maxCodeLength": {
+          "type": "number",
+          "default": 3000,
+          "description": "Maximum characters for code snippets (longer code will be sent as a file)"
+        },
+        "telegramBridge.parseMode": {
+          "type": "string",
+          "default": "Markdown",
+          "enum": ["Markdown", "HTML", "MarkdownV2"],
+          "description": "Telegram message parse mode"
+        },
+        "telegramBridge.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Telegram Bridge status in the status bar"
+        },
+        "telegramBridge.workspaceName": {
+          "type": "string",
+          "default": "",
+          "description": "Override workspace name shown in messages (uses folder name if empty)"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "telegram-bridge",
+          "title": "Telegram Bridge",
+          "icon": "media/telegram-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "telegram-bridge": [
+        {
+          "id": "telegramBridge.logsView",
+          "name": "Message Logs",
+          "icon": "media/telegram-icon.svg"
+        },
+        {
+          "id": "telegramBridge.quickActions",
+          "name": "Quick Actions"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "npx @vscode/vsce package",
+    "publish": "npx @vscode/vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/telegram-bridge/telegram-bridge-vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/telegram-bridge/telegram-bridge-vscode/issues"
+  },
+  "homepage": "https://github.com/telegram-bridge/telegram-bridge-vscode#readme",
+  "license": "MIT"
+}
