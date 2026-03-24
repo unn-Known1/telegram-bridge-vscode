@@ -174,12 +174,18 @@ Place in your workspace root for project-specific overrides:
   "telegramBridge.notifyOnDebugStart":      false,
   "telegramBridge.notifyOnDebugStop":       false,
   "telegramBridge.notifyOnFileSave":        false,
+  "telegramBridge.notifyOnFileChange":      false,
   "telegramBridge.notifyOnGitCommit":       false,
   "telegramBridge.notifyOnDiagnosticError": false,
+
+  // File watching
+  "telegramBridge.fileWatcherPatterns": [],
 
   // Incoming messages
   "telegramBridge.enablePolling":         false,
   "telegramBridge.pollingInterval":       5,
+  "telegramBridge.enableWebhook":         false,
+  "telegramBridge.webhookPort":           3456,
   "telegramBridge.showIncomingInEditor":  true,
 
   // Message settings
@@ -212,11 +218,15 @@ Place in your workspace root for project-specific overrides:
 
 ## 🛠️ Development
 
+> **For contributors:** See [AGENTS.md](./AGENTS.md) for coding guidelines, build commands, and project structure.
+
 ```bash
-git clone https://github.com/your-username/telegram-bridge-vscode
+git clone https://github.com/unn-Known1/telegram-bridge-vscode
 cd telegram-bridge-vscode
 npm install
 npm run watch       # TypeScript watch mode
+npm run lint        # Must pass before committing
+npm run compile     # Build TypeScript
 # Press F5 in VS Code to launch Extension Development Host
 ```
 
