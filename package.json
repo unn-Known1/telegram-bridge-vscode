@@ -1,0 +1,157 @@
+{
+  "name": "telegram-bridge",
+  "displayName": "Telegram Bridge",
+  "description": "The developer's Telegram superpower inside VS Code. Send code, receive messages, watch builds, track errors, schedule reminders — all from your IDE.",
+  "version": "2.0.0",
+  "publisher": "telegram-bridge",
+  "icon": "media/icon.png",
+  "galleryBanner": { "color": "#0d1b2a", "theme": "dark" },
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other","Snippets","Visualization","Debuggers"],
+  "keywords": ["telegram","bot","notifications","messaging","productivity","devtools","alerts","bridge","git","build","debug","scheduler","templates","multi-chat","terminal","diagnostics"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "telegramBridge.configure",           "title": "Telegram Bridge: Configure",                "icon": "$(settings-gear)" },
+      { "command": "telegramBridge.sendMessage",          "title": "Telegram Bridge: Send Message",             "icon": "$(comment)" },
+      { "command": "telegramBridge.sendSelection",        "title": "Telegram Bridge: Send Selected Code",       "icon": "$(code)" },
+      { "command": "telegramBridge.sendFile",             "title": "Telegram Bridge: Send Current File",        "icon": "$(file-code)" },
+      { "command": "telegramBridge.testConnection",       "title": "Telegram Bridge: Test Connection",          "icon": "$(plug)" },
+      { "command": "telegramBridge.toggleNotifications",  "title": "Telegram Bridge: Toggle Build Notifications","icon": "$(bell)" },
+      { "command": "telegramBridge.disconnect",           "title": "Telegram Bridge: Disconnect",               "icon": "$(debug-disconnect)" },
+      { "command": "telegramBridge.openComposer",         "title": "Telegram Bridge: Open Message Composer",    "icon": "$(edit)" },
+      { "command": "telegramBridge.sendDiagnostics",      "title": "Telegram Bridge: Send Workspace Errors",    "icon": "$(error)" },
+      { "command": "telegramBridge.sendTerminalOutput",   "title": "Telegram Bridge: Send Terminal Output",     "icon": "$(terminal)" },
+      { "command": "telegramBridge.scheduleMessage",      "title": "Telegram Bridge: Schedule a Message",       "icon": "$(clock)" },
+      { "command": "telegramBridge.manageTemplates",      "title": "Telegram Bridge: Manage Templates",         "icon": "$(symbol-snippet)" },
+      { "command": "telegramBridge.sendFromTemplate",     "title": "Telegram Bridge: Send from Template",       "icon": "$(list-selection)" },
+      { "command": "telegramBridge.broadcastMessage",     "title": "Telegram Bridge: Broadcast to All Chats",   "icon": "$(broadcast)" },
+      { "command": "telegramBridge.switchProfile",        "title": "Telegram Bridge: Switch Profile",           "icon": "$(account)" },
+      { "command": "telegramBridge.addProfile",           "title": "Telegram Bridge: Add Profile",              "icon": "$(add)" },
+      { "command": "telegramBridge.exportLogs",           "title": "Telegram Bridge: Export Message Logs",      "icon": "$(export)" },
+      { "command": "telegramBridge.clearLogs",            "title": "Telegram Bridge: Clear Logs",               "icon": "$(trash)" },
+      { "command": "telegramBridge.togglePolling",        "title": "Telegram Bridge: Toggle Incoming Messages", "icon": "$(arrow-down)" },
+      { "command": "telegramBridge.sendGitStatus",        "title": "Telegram Bridge: Send Git Status",          "icon": "$(source-control)" },
+      { "command": "telegramBridge.sendSystemInfo",       "title": "Telegram Bridge: Send System Info",         "icon": "$(info)" },
+      { "command": "telegramBridge.createPoll",           "title": "Telegram Bridge: Create Telegram Poll",     "icon": "$(graph)" },
+      { "command": "telegramBridge.openInbox",            "title": "Telegram Bridge: Open Inbox",               "icon": "$(mail)" },
+      { "command": "telegramBridge.workspaceConfig",      "title": "Telegram Bridge: Open Workspace Config",    "icon": "$(file-code)" },
+      { "command": "telegramBridge.sendMarkdown",         "title": "Telegram Bridge: Send File as Markdown",    "icon": "$(markdown)" },
+      { "command": "telegramBridge.refreshInbox",         "title": "Refresh Inbox",                             "icon": "$(refresh)" },
+      { "command": "telegramBridge.deleteScheduled",      "title": "Delete Scheduled Message",                  "icon": "$(trash)" },
+      { "command": "telegramBridge.deleteTemplate",       "title": "Delete Template",                           "icon": "$(trash)" },
+      { "command": "telegramBridge.useTemplate",          "title": "Send This Template",                        "icon": "$(send)" }
+    ],
+    "menus": {
+      "editor/context": [
+        { "command": "telegramBridge.sendSelection",    "when": "editorHasSelection", "group": "telegram@1" },
+        { "command": "telegramBridge.sendFile",         "group": "telegram@2" },
+        { "command": "telegramBridge.openComposer",     "group": "telegram@3" },
+        { "command": "telegramBridge.sendDiagnostics",  "when": "telegramBridge.connected", "group": "telegram@4" }
+      ],
+      "editor/title": [
+        { "command": "telegramBridge.sendFile", "when": "telegramBridge.connected", "group": "navigation" }
+      ],
+      "scm/title": [
+        { "command": "telegramBridge.sendGitStatus", "when": "telegramBridge.connected", "group": "telegram" }
+      ],
+      "view/title": [
+        { "command": "telegramBridge.refreshInbox",    "when": "view == telegramBridge.inboxView",    "group": "navigation" },
+        { "command": "telegramBridge.exportLogs",      "when": "view == telegramBridge.logsView",     "group": "navigation" },
+        { "command": "telegramBridge.clearLogs",       "when": "view == telegramBridge.logsView",     "group": "navigation" },
+        { "command": "telegramBridge.manageTemplates", "when": "view == telegramBridge.templatesView","group": "navigation" },
+        { "command": "telegramBridge.addProfile",      "when": "view == telegramBridge.profilesView", "group": "navigation" }
+      ],
+      "view/item/context": [
+        { "command": "telegramBridge.useTemplate",     "when": "viewItem == template",   "group": "inline" },
+        { "command": "telegramBridge.deleteTemplate",  "when": "viewItem == template",   "group": "inline" },
+        { "command": "telegramBridge.deleteScheduled", "when": "viewItem == scheduled",  "group": "inline" }
+      ]
+    },
+    "keybindings": [
+      { "command": "telegramBridge.sendMessage",     "key": "ctrl+shift+t", "mac": "cmd+shift+t", "when": "telegramBridge.connected" },
+      { "command": "telegramBridge.sendSelection",   "key": "ctrl+shift+s", "mac": "cmd+shift+s", "when": "editorHasSelection && telegramBridge.connected" },
+      { "command": "telegramBridge.openComposer",    "key": "ctrl+shift+k", "mac": "cmd+shift+k", "when": "telegramBridge.connected" },
+      { "command": "telegramBridge.sendDiagnostics", "key": "ctrl+shift+e", "mac": "cmd+shift+e", "when": "telegramBridge.connected" }
+    ],
+    "configuration": {
+      "title": "Telegram Bridge",
+      "properties": {
+        "telegramBridge.botToken":                { "type": "string",  "default": "",         "description": "Telegram Bot API token (from @BotFather)", "scope": "application" },
+        "telegramBridge.chatId":                  { "type": "string",  "default": "",         "description": "Primary target chat/group/channel ID", "scope": "application" },
+        "telegramBridge.activeProfile":           { "type": "string",  "default": "default",  "description": "Active connection profile name" },
+        "telegramBridge.profiles":                { "type": "object",  "default": {},         "description": "Named connection profiles", "scope": "application" },
+        "telegramBridge.additionalChats":         { "type": "array",   "default": [],         "description": "Extra chat IDs for broadcast", "items": { "type": "string" } },
+        "telegramBridge.notifyOnBuildSuccess":    { "type": "boolean", "default": true },
+        "telegramBridge.notifyOnBuildFailure":    { "type": "boolean", "default": true },
+        "telegramBridge.notifyOnDebugStart":      { "type": "boolean", "default": false },
+        "telegramBridge.notifyOnDebugStop":       { "type": "boolean", "default": false },
+        "telegramBridge.notifyOnFileSave":        { "type": "boolean", "default": false },
+        "telegramBridge.notifyOnGitCommit":       { "type": "boolean", "default": false },
+        "telegramBridge.notifyOnDiagnosticError": { "type": "boolean", "default": false },
+        "telegramBridge.enablePolling":           { "type": "boolean", "default": false },
+        "telegramBridge.pollingInterval":         { "type": "number",  "default": 5, "minimum": 3 },
+        "telegramBridge.showIncomingInEditor":    { "type": "boolean", "default": true },
+        "telegramBridge.parseMode":               { "type": "string",  "default": "Markdown", "enum": ["Markdown","HTML","MarkdownV2"] },
+        "telegramBridge.maxCodeLength":           { "type": "number",  "default": 3000 },
+        "telegramBridge.messagePrefix":           { "type": "string",  "default": "💻 VS Code" },
+        "telegramBridge.workspaceName":           { "type": "string",  "default": "" },
+        "telegramBridge.showStatusBar":           { "type": "boolean", "default": true },
+        "telegramBridge.silentNotifications":     { "type": "boolean", "default": false },
+        "telegramBridge.templates":               { "type": "array",   "default": [], "items": { "type": "object" } },
+        "telegramBridge.scheduledMessages":       { "type": "array",   "default": [], "items": { "type": "object" } },
+        "telegramBridge.diagnosticsMinSeverity":  { "type": "string",  "default": "Error", "enum": ["Error","Warning","Information","Hint"] },
+        "telegramBridge.logRetentionDays":        { "type": "number",  "default": 7 },
+        "telegramBridge.codeSnippetLanguage":     { "type": "boolean", "default": true },
+        "telegramBridge.autoSendOnError":         { "type": "boolean", "default": false }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        { "id": "telegram-bridge", "title": "Telegram Bridge", "icon": "media/telegram-icon.svg" }
+      ]
+    },
+    "views": {
+      "telegram-bridge": [
+        { "id": "telegramBridge.profilesView",  "name": "Profiles"      },
+        { "id": "telegramBridge.inboxView",     "name": "Inbox"         },
+        { "id": "telegramBridge.templatesView", "name": "Templates"     },
+        { "id": "telegramBridge.schedulerView", "name": "Scheduled"     },
+        { "id": "telegramBridge.logsView",      "name": "Sent Log"      },
+        { "id": "telegramBridge.quickActions",  "name": "Quick Actions" }
+      ]
+    },
+    "walkthroughs": [
+      {
+        "id": "telegramBridge.getStarted",
+        "title": "Get Started with Telegram Bridge",
+        "description": "Connect your IDE to Telegram in under 2 minutes.",
+        "steps": [
+          { "id": "createBot", "title": "Create a Telegram Bot",    "description": "Talk to @BotFather on Telegram to get your API token.\n[Open @BotFather](https://t.me/BotFather)", "completionEvents": [] },
+          { "id": "configure", "title": "Configure the Extension",  "description": "Enter your Bot Token and Chat ID.\n[Open Configuration](command:telegramBridge.configure)", "completionEvents": ["onCommand:telegramBridge.configure"] },
+          { "id": "sendFirst", "title": "Send Your First Message",  "description": "Press Ctrl+Shift+T or right-click any code.\n[Send Message](command:telegramBridge.sendMessage)", "completionEvents": ["onCommand:telegramBridge.sendMessage"] }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "npx @vscode/vsce package --no-dependencies",
+    "publish": "npx @vscode/vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {},
+  "repository": { "type": "git", "url": "https://github.com/unn-Known1/telegram-bridge-vscode" },
+  "license": "MIT"
+}
