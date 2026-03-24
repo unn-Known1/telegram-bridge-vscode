@@ -70,8 +70,7 @@ export class ProfilesProvider implements vscode.TreeDataProvider<ProfileItem> {
 
   constructor(
     private _manager: ProfileManager,
-    private _service: TelegramService,
-    context: vscode.ExtensionContext
+    private _service: TelegramService
   ) {
     _service.onConnectionChange(() => this._onDidChange.fire());
   }

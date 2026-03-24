@@ -16,7 +16,7 @@ import { sendSystemInfo } from './systemInfo';
 import { TerminalManager } from './terminalManager';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-  console.log('[TelegramBridge] Activating v2.0.0');
+  console.log('[TelegramBridge] Activating v2.1.0');
 
   // ─── Services ───────────────────────────────────────────────
   const telegramService    = new TelegramService(context);
@@ -25,13 +25,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const profileManager     = new ProfileManager(telegramService, context);
   const templateManager    = new TemplateManager(telegramService);
   const schedulerManager   = new SchedulerManager(telegramService, templateManager, context);
-  const inboxManager       = new InboxManager(telegramService);
+  const inboxManager       = new InboxManager(telegramService, context);
   const notificationMgr    = new NotificationManager(telegramService, context);
   const wsCfgManager       = new WorkspaceConfigManager();
   const terminalManager   = new TerminalManager(telegramService, context);
 
   // ─── Tree view providers ────────────────────────────────────
-  const profilesProvider   = new ProfilesProvider(profileManager, telegramService, context);
+  const profilesProvider   = new ProfilesProvider(profileManager, telegramService);
   const templatesProvider  = new TemplatesProvider(templateManager);
   const schedulerProvider  = new SchedulerProvider(schedulerManager);
   const inboxProvider      = new InboxProvider(inboxManager, telegramService);

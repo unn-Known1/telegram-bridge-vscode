@@ -4,12 +4,17 @@ import { TelegramService, TelegramMessage } from './telegramService';
 export class InboxManager {
   private _messages: TelegramMessage[] = [];
 
-  constructor(service: TelegramService) {
+  constructor(
+    service: TelegramService,
+    private _context: vscode.ExtensionContext
+  ) {
+    this._loadPersistedMessages();
     service.onIncomingMessage((msg) => {
       this._messages.unshift(msg);
       if (this._messages.length > 100) {
         this._messages = this._messages.slice(0, 100);
       }
+      this._persist();
 
       const cfg = vscode.workspace.getConfiguration('telegramBridge');
       if (cfg.get<boolean>('showIncomingInEditor', true)) {
@@ -29,12 +34,27 @@ export class InboxManager {
     });
   }
 
+  private _loadPersistedMessages(): void {
+    try {
+      const saved = this._context.globalState.get<TelegramMessage[]>('telegramBridge.inbox', []);
+      this._messages = saved;
+    } catch {
+      this._messages = [];
+    }
+  }
+
+  private _persist(): void {
+    const toSave = this._messages.slice(0, 100);
+    this._context.globalState.update('telegramBridge.inbox', toSave);
+  }
+
   getMessages(): TelegramMessage[] {
     return this._messages;
   }
 
   clear(): void {
     this._messages = [];
+    this._context.globalState.update('telegramBridge.inbox', []);
   }
 }
 
