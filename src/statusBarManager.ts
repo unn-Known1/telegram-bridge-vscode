@@ -7,10 +7,11 @@ export class StatusBarManager {
   private _pollingActive = false;
 
   constructor(
-    private _context: vscode.ExtensionContext, // eslint-disable-next-line
+    private _context: vscode.ExtensionContext,
     private _service: TelegramService
   ) {
     this._item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    this._item.text = '$(telegram)';
     _context.subscriptions.push(this._item);
   }
 
@@ -45,22 +46,34 @@ export class StatusBarManager {
     const profile  = cfg.get<string>('activeProfile', 'default');
 
     if (this._connected) {
-      const icons = ['$(comment-discussion)', polling ? '$(arrow-down)' : '', notifyOn ? '$(bell)' : '$(bell-slash)'].filter(Boolean).join(' ');
-      this._item.text = `$(telegram) ${icons}`;
+      const statusParts: string[] = [];
+      if (polling) statusParts.push('📥');
+      if (notifyOn) statusParts.push('🔔');
+      const statusIcon = statusParts.length > 0 ? ` ${statusParts.join('')}` : '';
+      
+      this._item.text = `$(telegram)${statusIcon} ${botInfo?.username ?? 'Connected'}`;
+      
       const md = new vscode.MarkdownString(
-        `**Telegram Bridge** ✅ Connected\n\n` +
-        `Bot: @${botInfo?.username ?? '?'}\n\n` +
-        `Profile: \`${profile}\`\n\n` +
-        `Polling: ${polling ? '🟢 on' : '⚫ off'} | Notifications: ${notifyOn ? '🔔 on' : '🔕 off'}\n\n` +
-        `*Click to configure*`
+        `**✈️ Telegram Bridge**  \n` +
+        `✅ *Connected*\n\n` +
+        `--- \n\n` +
+        `**Bot:** @${botInfo?.username ?? 'unknown'}  \n` +
+        `**Profile:** \`${profile}\`  \n\n` +
+        `--- \n\n` +
+        `📥 Polling: **${polling ? 'ON' : 'OFF'}**  \n` +
+        `🔔 Notifications: **${notifyOn ? 'ON' : 'OFF'}**  \n\n` +
+        `--- \n\n` +
+        `*Click to open settings*`
       );
       md.isTrusted = true;
       this._item.tooltip = md;
-      this._item.backgroundColor = undefined;
+      this._item.backgroundColor = new vscode.ThemeColor('statusBarItem.prominentForegroundBackground');
+      this._item.color = new vscode.ThemeColor('statusBarItem.prominentForeground');
     } else {
-      this._item.text = `$(telegram) $(warning)`;
-      this._item.tooltip = 'Telegram Bridge — Not connected. Click to configure.';
+      this._item.text = '$(telegram) Not Connected';
+      this._item.tooltip = '**✈️ Telegram Bridge**\n\n❌ *Not connected*\n\nClick to configure your bot credentials.';
       this._item.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+      this._item.color = undefined;
     }
 
     this._item.command = 'telegramBridge.configure';

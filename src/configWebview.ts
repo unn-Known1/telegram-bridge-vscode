@@ -166,126 +166,187 @@ export class ConfigWebview {
   --btn-bg: var(--vscode-button-background);
   --btn-fg: var(--vscode-button-foreground);
   --panel: var(--vscode-editorGroupHeader-tabsBackground);
-  --accent: #229ED9;
-  --success: #4CAF50;
-  --error: #f44336;
-  --warn: #FF9800;
-  --r: 8px;
+  --accent: #2AABEE;
+  --accent-hover: #229ED9;
+  --accent-glow: rgba(42, 171, 238, 0.3);
+  --success: #34D399;
+  --success-bg: rgba(52, 211, 153, 0.15);
+  --error: #F87171;
+  --error-bg: rgba(248, 113, 113, 0.15);
+  --warn: #FBBF24;
+  --warn-bg: rgba(251, 191, 36, 0.15);
+  --info: #60A5FA;
+  --info-bg: rgba(96, 165, 250, 0.15);
+  --r: 12px;
+  --r-sm: 6px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--vscode-font-family);font-size:var(--vscode-font-size);color:var(--fg);background:var(--bg);min-height:100vh}
+body{font-family:var(--vscode-font-family);font-size:var(--vscode-font-size);color:var(--fg);background:var(--bg);min-height:100vh;line-height:1.5}
 
 /* ── Header ── */
-.header{background:linear-gradient(135deg,#0d1b2a,#162033 60%,#1a1f35);padding:24px 32px;display:flex;align-items:center;gap:16px;border-bottom:1px solid rgba(34,158,217,.2)}
-.logo{width:48px;height:48px;background:linear-gradient(135deg,#2AABEE,#229ED9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;box-shadow:0 4px 16px rgba(34,158,217,.35)}
-.header h1{font-size:18px;font-weight:700;color:#fff}
-.header p{font-size:12px;color:rgba(255,255,255,.5);margin-top:3px}
-.badge{margin-left:auto;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px;flex-shrink:0}
-.badge.on{background:rgba(76,175,80,.15);color:#4CAF50;border:1px solid rgba(76,175,80,.3)}
-.badge.off{background:rgba(255,152,0,.15);color:#FF9800;border:1px solid rgba(255,152,0,.3)}
-.dot{width:7px;height:7px;border-radius:50%}
-.on .dot{background:#4CAF50;animation:pulse 2s infinite}
-.off .dot{background:#FF9800}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.header{background:linear-gradient(135deg,rgba(20,30,48,0.95),rgba(36,59,85,0.9));padding:20px 28px;display:flex;align-items:center;gap:16px;border-bottom:1px solid rgba(42,171,238,0.15);position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(42,171,238,0.5),transparent)}
+.logo{width:52px;height:52px;background:linear-gradient(135deg,#2AABEE,#1D9BD1);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 4px 20px rgba(42,171,238,0.4),inset 0 1px 0 rgba(255,255,255,0.2);transition:transform .2s}
+.logo:hover{transform:scale(1.05)}
+.header-content{flex:1}
+.header h1{font-size:20px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:2px}
+.header p{font-size:13px;color:rgba(255,255,255,0.5);font-weight:400}
+.badge{margin-left:auto;padding:6px 14px;border-radius:24px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;flex-shrink:0;transition:all .2s}
+.badge.on{background:linear-gradient(135deg,rgba(52,211,153,0.2),rgba(52,211,153,0.1));color:#34D399;border:1px solid rgba(52,211,153,0.3)}
+.badge.off{background:linear-gradient(135deg,rgba(251,191,36,0.2),rgba(251,191,36,0.1));color:#FBBF24;border:1px solid rgba(251,191,36,0.3)}
+.dot{width:8px;height:8px;border-radius:50%;transition:all .2s}
+.badge.on .dot{background:#34D399;box-shadow:0 0 8px #34D399;animation:pulse 2s infinite}
+.badge.off .dot{background:#FBBF24}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.7;transform:scale(1.1)}}
 
 /* ── Tabs ── */
-.tabs{display:flex;background:var(--panel);border-bottom:1px solid rgba(255,255,255,.06);overflow-x:auto}
-.tab{padding:10px 18px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.45);border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
-.tab:hover{color:rgba(255,255,255,.8)}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tabs{display:flex;background:var(--panel);border-bottom:1px solid rgba(255,255,255,0.04);padding:0 20px;gap:4px}
+.tab{padding:14px 20px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,0.4);border-bottom:2px solid transparent;transition:all .2s;position:relative}
+.tab::before{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--accent);transform:scaleX(0);transition:transform .2s}
+.tab:hover{color:rgba(255,255,255,0.7)}
+.tab.active{color:var(--accent)}
+.tab.active::before{transform:scaleX(1)}
+.tab-icon{margin-right:6px;opacity:0.7}
 
 /* ── Content ── */
-.content{max-width:760px;margin:0 auto;padding:28px 32px}
-.tab-pane{display:none}
+.content{max-width:800px;margin:0 auto;padding:24px 28px}
+.tab-pane{display:none;animation:fadeIn .25s ease}
 .tab-pane.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── Sections ── */
-.section{background:var(--panel);border:1px solid rgba(255,255,255,.06);border-radius:var(--r);padding:20px;margin-bottom:16px}
-.sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.field{margin-bottom:14px}
+.section{background:linear-gradient(135deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.06);border-radius:var(--r);padding:22px;margin-bottom:18px;transition:border-color .2s}
+.section:hover{border-color:rgba(255,255,255,0.1)}
+.sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.sec-title::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+/* ── Form Elements ── */
+.field{margin-bottom:16px}
 .field:last-child{margin-bottom:0}
-label{display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:rgba(255,255,255,.75)}
-.hint-label{font-weight:400;color:rgba(255,255,255,.35);font-size:11px;margin-left:5px}
+label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:rgba(255,255,255,0.8)}
+.hint-label{font-weight:400;color:rgba(255,255,255,0.35);font-size:11px;margin-left:6px}
 
 input[type=text],input[type=password],input[type=number],select,textarea{
-  width:100%;padding:9px 11px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;
-  color:var(--input-fg);font-size:13px;font-family:var(--vscode-font-family);outline:none;transition:border-color .2s;resize:vertical}
-input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(34,158,217,.15)}
-.row{display:flex;gap:8px;align-items:flex-start}
+  width:100%;padding:10px 14px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.08);border-radius:var(--r-sm);
+  color:var(--input-fg);font-size:13px;font-family:var(--vscode-font-family);outline:none;transition:all .2s;resize:vertical}
+input::placeholder{color:rgba(255,255,255,0.2)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);background:rgba(0,0,0,0.3)}
+.row{display:flex;gap:10px;align-items:flex-start}
 .row input,.row textarea{flex:1}
 
 /* ── Buttons ── */
-.btn{padding:9px 15px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--vscode-font-family);display:inline-flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.primary{background:var(--accent);color:#fff}
-.primary:hover:not(:disabled){background:#1a8fc7;transform:translateY(-1px)}
-.secondary{background:rgba(255,255,255,.07);color:var(--fg);border:1px solid rgba(255,255,255,.1)}
-.secondary:hover:not(:disabled){background:rgba(255,255,255,.12)}
-.danger{background:rgba(244,67,54,.12);color:#f44336;border:1px solid rgba(244,67,54,.22)}
-.danger:hover:not(:disabled){background:rgba(244,67,54,.2)}
-.success-btn{background:rgba(76,175,80,.12);color:#4CAF50;border:1px solid rgba(76,175,80,.22)}
-.success-btn:hover:not(:disabled){background:rgba(76,175,80,.2)}
-.warn-btn{background:rgba(255,152,0,.12);color:#FF9800;border:1px solid rgba(255,152,0,.22)}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.btn{padding:10px 18px;border-radius:var(--r-sm);border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--vscode-font-family);display:inline-flex;align-items:center;gap:8px;transition:all .2s;white-space:nowrap;position:relative;overflow:hidden}
+.btn::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.1),transparent);opacity:0;transition:opacity .2s}
+.btn:hover::before{opacity:1}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.primary{background:linear-gradient(135deg,#2AABEE,#1D9BD1);color:#fff;box-shadow:0 2px 12px rgba(42,171,238,0.3)}
+.primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 4px 20px rgba(42,171,238,0.4)}
+.secondary{background:rgba(255,255,255,0.06);color:var(--fg);border:1px solid rgba(255,255,255,0.1)}
+.secondary:hover:not(:disabled){background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15)}
+.danger{background:rgba(248,113,113,0.15);color:#F87171;border:1px solid rgba(248,113,113,0.25)}
+.danger:hover:not(:disabled){background:rgba(248,113,113,0.2)}
+.success-btn{background:rgba(52,211,153,0.15);color:#34D399;border:1px solid rgba(52,211,153,0.25)}
+.success-btn:hover:not(:disabled){background:rgba(52,211,153,0.2)}
+.warn-btn{background:rgba(251,191,36,0.15);color:#FBBF24;border:1px solid rgba(251,191,36,0.25)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 
-/* ── Toggles grid ── */
-.toggles{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:6px;cursor:pointer;transition:.15s}
-.toggle-row:hover{background:rgba(255,255,255,.07)}
-.toggle-row span{font-size:12px;color:rgba(255,255,255,.8)}
-.switch{position:relative;width:34px;height:18px;flex-shrink:0}
+/* ── Toggles ── */
+.toggles{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:var(--r-sm);cursor:pointer;transition:all .2s}
+.toggle-row:hover{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08)}
+.toggle-row.active{border-color:var(--accent);background:linear-gradient(135deg,rgba(42,171,238,0.08),rgba(42,171,238,0.02))}
+.toggle-label{display:flex;align-items:center;gap:10px}
+.toggle-icon{width:32px;height:32px;background:rgba(255,255,255,0.04);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:16px}
+.toggle-text{font-size:13px;color:rgba(255,255,255,0.85)}
+.toggle-desc{font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px}
+.switch{position:relative;width:44px;height:24px;flex-shrink:0}
 .switch input{display:none}
-.track{position:absolute;inset:0;background:rgba(255,255,255,.12);border-radius:9px;cursor:pointer;transition:.2s}
-.track::after{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.2s}
-input:checked+.track{background:var(--accent)}
-input:checked+.track::after{transform:translateX(16px)}
+.track{position:absolute;inset:0;background:rgba(255,255,255,0.1);border-radius:12px;cursor:pointer;transition:.25s}
+.track::after{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+input:checked+.track{background:linear-gradient(135deg,#2AABEE,#1D9BD1)}
+input:checked+.track::after{transform:translateX(20px)}
 
-/* ── Alert ── */
-.alert{padding:10px 14px;border-radius:6px;font-size:12px;margin-top:12px;display:none;align-items:center;gap:8px}
+/* ── Alerts ── */
+.alert{padding:12px 16px;border-radius:var(--r-sm);font-size:13px;margin-top:14px;display:none;align-items:center;gap:10px;animation:slideIn .2s ease}
 .alert.show{display:flex}
-.a-success{background:rgba(76,175,80,.12);color:#4CAF50;border:1px solid rgba(76,175,80,.25)}
-.a-error{background:rgba(244,67,54,.12);color:#f44336;border:1px solid rgba(244,67,54,.25)}
-.a-info{background:rgba(34,158,217,.12);color:var(--accent);border:1px solid rgba(34,158,217,.25)}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.a-success{background:linear-gradient(135deg,rgba(52,211,153,0.15),rgba(52,211,153,0.05));color:#34D399;border:1px solid rgba(52,211,153,0.2)}
+.a-error{background:linear-gradient(135deg,rgba(248,113,113,0.15),rgba(248,113,113,0.05));color:#F87171;border:1px solid rgba(248,113,113,0.2)}
+.a-info{background:linear-gradient(135deg,rgba(96,165,250,0.15),rgba(96,165,250,0.05));color:#60A5FA;border:1px solid rgba(96,165,250,0.2)}
 
 /* ── Composer ── */
-.composer-area{min-height:120px}
-.char-count{font-size:11px;color:rgba(255,255,255,.35);text-align:right;margin-top:4px}
-.preview-box{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:12px;font-size:12px;min-height:60px;white-space:pre-wrap;color:rgba(255,255,255,.8);margin-top:8px}
-.preview-label{font-size:11px;color:rgba(255,255,255,.35);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.composer-area{min-height:140px;line-height:1.6}
+.char-count{font-size:11px;color:rgba(255,255,255,0.3);text-align:right;margin-top:6px}
+.preview-box{background:linear-gradient(135deg,rgba(0,0,0,0.2),rgba(0,0,0,0.1));border:1px solid rgba(255,255,255,0.05);border-radius:var(--r-sm);padding:14px;font-size:13px;min-height:70px;white-space:pre-wrap;color:rgba(255,255,255,0.8);margin-top:10px;line-height:1.6}
+.preview-label{font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px;font-weight:600}
 
-/* ── Templates list ── */
-.template-list{display:flex;flex-direction:column;gap:8px}
-.template-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:12px;cursor:pointer;transition:.15s;display:flex;align-items:flex-start;gap:12px}
-.template-card:hover{background:rgba(255,255,255,.08);border-color:rgba(34,158,217,.3)}
-.tc-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+/* ── Templates ── */
+.template-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.template-card{background:linear-gradient(135deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.05);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:10px}
+.template-card:hover{background:linear-gradient(135deg,rgba(42,171,238,0.08),rgba(42,171,238,0.02));border-color:rgba(42,171,238,0.3);transform:translateY(-2px)}
+.tc-header{display:flex;align-items:flex-start;gap:12px}
+.tc-icon{font-size:22px;flex-shrink:0}
 .tc-body{flex:1;min-width:0}
-.tc-name{font-size:13px;font-weight:600;color:rgba(255,255,255,.9)}
-.tc-desc{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
-.tc-category{font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(34,158,217,.15);color:var(--accent);margin-top:4px;display:inline-block}
-.tc-actions{display:flex;gap:6px;flex-shrink:0;margin-top:2px}
-.btn-xs{padding:4px 9px;font-size:11px;border-radius:4px}
+.tc-name{font-size:14px;font-weight:600;color:rgba(255,255,255,0.9)}
+.tc-desc{font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;line-height:1.4}
+.tc-category{font-size:10px;padding:4px 10px;border-radius:12px;background:linear-gradient(135deg,rgba(42,171,238,0.15),rgba(42,171,238,0.05));color:#2AABEE;font-weight:600;display:inline-block;margin-top:8px}
+.tc-actions{display:flex;gap:6px;margin-top:4px}
+.btn-xs{padding:6px 12px;font-size:11px;border-radius:6px}
 
 /* ── Stats ── */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.stat-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:16px;text-align:center}
-.stat-val{font-size:28px;font-weight:700;color:var(--accent)}
-.stat-lbl{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat-card{background:linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.06);border-radius:var(--r);padding:20px;text-align:center;transition:all .2s}
+.stat-card:hover{border-color:rgba(42,171,238,0.3);transform:translateY(-2px)}
+.stat-icon{font-size:24px;margin-bottom:8px}
+.stat-val{font-size:32px;font-weight:700;background:linear-gradient(135deg,#2AABEE,#60A5FA);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-lbl{font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px;text-transform:uppercase;letter-spacing:.8px;font-weight:600}
 
 /* ── Spinner ── */
-.spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:4px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── Link ── */
-a.link{color:var(--accent);text-decoration:none;cursor:pointer;font-size:11px}
-a.link:hover{text-decoration:underline}
+/* ── Links ── */
+a.link{color:var(--accent);text-decoration:none;cursor:pointer;font-size:12px;font-weight:500;transition:color .2s}
+a.link:hover{color:#60A5FA;text-decoration:underline}
 
-/* ── Separator ── */
-.divider{border:none;border-top:1px solid rgba(255,255,255,.06);margin:14px 0}
+/* ── Quick Send Buttons ── */
+.quick-grid{display:flex;flex-wrap:wrap;gap:8px}
+.quick-btn{padding:8px 14px;border-radius:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.quick-btn:hover{background:rgba(42,171,238,0.1);border-color:rgba(42,171,238,0.3);color:#fff;transform:translateY(-1px)}
 
-@media(max-width:540px){
+/* ── Bot Info ── */
+.bot-info{display:flex;align-items:center;gap:16px;padding:16px;background:linear-gradient(135deg,rgba(42,171,238,0.08),rgba(42,171,238,0.02));border:1px solid rgba(42,171,238,0.15);border-radius:var(--r)}
+.bot-avatar{width:48px;height:48px;background:linear-gradient(135deg,#2AABEE,#1D9BD1);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.bot-details{flex:1}
+.bot-name{font-size:15px;font-weight:600;color:#fff}
+.bot-username{font-size:13px;color:rgba(255,255,255,0.5);margin-top:2px}
+.bot-id{font-size:11px;color:rgba(255,255,255,0.3);font-family:monospace;margin-top:4px}
+
+/* ── Responsive ── */
+@media(max-width:600px){
   .content{padding:16px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
   .toggles{grid-template-columns:1fr}
-  .stats-grid{grid-template-columns:1fr 1fr}
+  .template-list{grid-template-columns:1fr}
+}
+
+/* ── Link ── */
+a.link{color:var(--accent);text-decoration:none;cursor:pointer;font-size:12px;font-weight:500}
+a.link:hover{color:#60A5FA}
+
+/* ── Section icons in titles ── */
+.sec-icon{font-size:14px;margin-right:4px}
+
+/* ── Empty state ── */
+.empty-state{text-align:center;padding:40px 20px;color:rgba(255,255,255,0.3)}
+.empty-icon{font-size:48px;margin-bottom:16px;opacity:0.5}
+.empty-text{font-size:14px}
+
+@media(max-width:600px){
+  .content{padding:16px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .toggles{grid-template-columns:1fr}
+  .template-list{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -293,7 +354,7 @@ a.link:hover{text-decoration:underline}
 
 <div class="header">
   <div class="logo">✈️</div>
-  <div>
+  <div class="header-content">
     <h1>Telegram Bridge</h1>
     <p id="headerSub">${s.connected ? `Connected as @${(s.botInfo as {username?:string})?.username ?? '...'}` : 'Not connected — enter credentials below'}</p>
   </div>
@@ -304,11 +365,11 @@ a.link:hover{text-decoration:underline}
 </div>
 
 <div class="tabs">
-  <button class="tab ${(s.initialTab as string) === 'config' || !s.initialTab ? 'active' : ''}"     onclick="switchTab('config')">⚙️ Configuration</button>
-  <button class="tab ${(s.initialTab as string) === 'compose' ? 'active' : ''}"    onclick="switchTab('compose')">✏️ Composer</button>
-  <button class="tab ${(s.initialTab as string) === 'templates' ? 'active' : ''}"  onclick="switchTab('templates')">📋 Templates</button>
-  <button class="tab ${(s.initialTab as string) === 'advanced' ? 'active' : ''}"   onclick="switchTab('advanced')">🔧 Advanced</button>
-  <button class="tab ${(s.initialTab as string) === 'stats' ? 'active' : ''}"      onclick="switchTab('stats')">📊 Stats</button>
+  <button class="tab ${(s.initialTab as string) === 'config' || !s.initialTab ? 'active' : ''}"     onclick="switchTab('config')"><span class="tab-icon">⚙️</span>Configuration</button>
+  <button class="tab ${(s.initialTab as string) === 'compose' ? 'active' : ''}"    onclick="switchTab('compose')"><span class="tab-icon">✏️</span>Composer</button>
+  <button class="tab ${(s.initialTab as string) === 'templates' ? 'active' : ''}"  onclick="switchTab('templates')"><span class="tab-icon">📋</span>Templates</button>
+  <button class="tab ${(s.initialTab as string) === 'advanced' ? 'active' : ''}"   onclick="switchTab('advanced')"><span class="tab-icon">🔧</span>Advanced</button>
+  <button class="tab ${(s.initialTab as string) === 'stats' ? 'active' : ''}"      onclick="switchTab('stats')"><span class="tab-icon">📊</span>Stats</button>
 </div>
 
 <div class="content">
@@ -317,14 +378,14 @@ a.link:hover{text-decoration:underline}
 <div class="tab-pane ${(s.initialTab as string) === 'config' || !s.initialTab ? 'active' : ''}" id="tab-config">
 
   <div class="section">
-    <div class="sec-title">🔑 Bot Credentials</div>
+    <div class="sec-title"><span class="sec-icon">🔑</span>Bot Credentials</div>
     <div class="field">
       <label>Bot Token <span class="hint-label">from @BotFather</span></label>
       <div class="row">
         <input type="password" id="botToken" value="${s.botToken}" placeholder="110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw" />
         <button class="btn secondary" onclick="toggleVis('botToken',this)">Show</button>
       </div>
-      <a class="link" onclick="openBotFather()" style="margin-top:5px;display:inline-block">Create a bot with @BotFather →</a>
+      <a class="link" onclick="openBotFather()" style="margin-top:8px;display:inline-block">Create a bot with @BotFather →</a>
     </div>
     <div class="field">
       <label>Chat ID <span class="hint-label">target chat / group / channel</span></label>
@@ -335,14 +396,14 @@ a.link:hover{text-decoration:underline}
     </div>
     <div id="alert1" class="alert"></div>
     <div class="actions">
-      <button class="btn primary" id="saveBtn" onclick="save()">✅ Save & Connect</button>
+      <button class="btn primary" id="saveBtn" onclick="save()"><span class="btn-icon">💾</span>Save & Connect</button>
       <button class="btn success-btn" id="testBtn" onclick="test()" ${!s.connected ? 'disabled' : ''}>🔗 Test</button>
       <button class="btn danger" id="discoBtn" onclick="disconnect()" ${!s.connected ? 'disabled' : ''}>Disconnect</button>
     </div>
   </div>
 
   <div class="section">
-    <div class="sec-title">🔔 Automatic Notifications</div>
+    <div class="sec-title"><span class="sec-icon">🔔</span>Automatic Notifications</div>
     <div class="toggles">
       ${toggle('notifyBuildSuccess', '✅ Build Success',    s.notifyOnBuildSuccess as boolean)}
       ${toggle('notifyBuildFailure', '❌ Build Failure',    s.notifyOnBuildFailure as boolean)}
@@ -351,25 +412,33 @@ a.link:hover{text-decoration:underline}
       ${toggle('notifyFileSave',     '💾 File Save',       s.notifyOnFileSave as boolean)}
       ${toggle('notifyFileChange',   '📝 File Changed',    s.notifyOnFileChange as boolean)}
       ${toggle('notifyGitCommit',    '🔀 Git Commit',      s.notifyOnGitCommit as boolean)}
-      ${toggle('notifyDiagnostic',   '🔴 New Errors',      s.notifyOnDiagnosticError as boolean)}
       ${toggle('silentNotifs',       '🔕 Silent Mode',     s.silentNotifications as boolean)}
     </div>
   </div>
 
   <div class="section">
-    <div class="sec-title">📡 Incoming Messages (Polling)</div>
+    <div class="sec-title"><span class="sec-icon">📡</span>Incoming Messages (Polling)</div>
     <div class="toggles" style="grid-template-columns:1fr">
       ${toggle('enablePolling', '📥 Enable Polling (receive Telegram messages in VS Code)', s.enablePolling as boolean)}
     </div>
-    <div class="field" style="margin-top:12px">
+    <div class="field" style="margin-top:14px">
       <label>Polling interval (seconds)</label>
-      <input type="number" id="pollingInterval" value="${s.pollingInterval}" min="3" max="60" style="width:120px" />
+      <input type="number" id="pollingInterval" value="${s.pollingInterval}" min="3" max="60" style="width:140px" />
     </div>
   </div>
 
   <div class="section">
-    <div class="sec-title">🔗 Webhook</div>
+    <div class="sec-title"><span class="sec-icon">🔗</span>Webhook</div>
     <div class="toggles" style="grid-template-columns:1fr">
+      ${toggle('enableWebhook', '🔗 Enable Webhook (alternative to polling)', s.enableWebhook as boolean)}
+    </div>
+    <div class="field" style="margin-top:14px">
+      <label>Webhook port</label>
+      <input type="number" id="webhookPort" value="${s.webhookPort}" min="1024" max="65535" style="width:140px" />
+    </div>
+  </div>
+
+</div>
       ${toggle('enableWebhook', '🔗 Enable Webhook (alternative to polling)', s.enableWebhook as boolean)}
     </div>
     <div class="field" style="margin-top:12px">
@@ -403,14 +472,14 @@ a.link:hover{text-decoration:underline}
   </div>
 
   <div class="section">
-    <div class="sec-title">🚀 Quick Send</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px">
-      <button class="btn secondary" onclick="quickSend('deploy')">🚀 Deploy Started</button>
-      <button class="btn secondary" onclick="quickSend('build_ok')">✅ Build OK</button>
-      <button class="btn secondary" onclick="quickSend('build_fail')">❌ Build Failed</button>
-      <button class="btn secondary" onclick="quickSend('brb')">☕ BRB</button>
-      <button class="btn secondary" onclick="quickSend('hotfix')">🔧 Hotfix</button>
-      <button class="btn secondary" onclick="quickSend('review')">👀 Review Needed</button>
+    <div class="sec-title"><span class="sec-icon">🚀</span>Quick Send</div>
+    <div class="quick-grid">
+      <button class="quick-btn" onclick="quickSend('deploy')">🚀 Deploy</button>
+      <button class="quick-btn" onclick="quickSend('build_ok')">✅ Build OK</button>
+      <button class="quick-btn" onclick="quickSend('build_fail')">❌ Failed</button>
+      <button class="quick-btn" onclick="quickSend('brb')">☕ BRB</button>
+      <button class="quick-btn" onclick="quickSend('hotfix')">🔧 Hotfix</button>
+      <button class="quick-btn" onclick="quickSend('review')">👀 Review</button>
     </div>
   </div>
 </div>
@@ -419,44 +488,48 @@ a.link:hover{text-decoration:underline}
 <div class="tab-pane ${(s.initialTab as string) === 'templates' ? 'active' : ''}" id="tab-templates">
 
   <div class="section">
-    <div class="sec-title">📋 Message Templates</div>
+    <div class="sec-title"><span class="sec-icon">📋</span>Message Templates</div>
     <div class="template-list" id="templateList">
       ${templates.map(t => `
         <div class="template-card" id="tpl-${t.id}">
-          <div class="tc-icon">${t.name.split(' ')[0]}</div>
-          <div class="tc-body">
-            <div class="tc-name">${t.name.replace(/^[^\s]+\s/, '')}</div>
-            <div class="tc-desc">${t.description ?? ''}</div>
-            ${t.category ? `<span class="tc-category">${t.category}</span>` : ''}
+          <div class="tc-header">
+            <span class="tc-icon">${t.name.split(' ')[0]}</span>
+            <div class="tc-body">
+              <div class="tc-name">${t.name.replace(/^[^\s]+\s/, '')}</div>
+              <div class="tc-desc">${t.description ?? ''}</div>
+            </div>
           </div>
+          ${t.category ? `<span class="tc-category">${t.category}</span>` : ''}
           <div class="tc-actions">
             <button class="btn primary btn-xs" onclick="sendTemplate('${t.id}')">Send</button>
-            ${!t.id.startsWith('builtin-') ? `<button class="btn danger btn-xs" onclick="deleteTemplate('${t.id}')">✕</button>` : ''}
+            ${!t.id.startsWith('builtin-') ? `<button class="btn danger btn-xs" onclick="deleteTemplate('${t.id}')">Delete</button>` : ''}
           </div>
         </div>`).join('')}
     </div>
   </div>
 
   <div class="section">
-    <div class="sec-title">➕ Create Template</div>
+    <div class="sec-title"><span class="sec-icon">➕</span>Create Template</div>
     <div class="field">
       <label>Template Name</label>
       <input type="text" id="tplName" placeholder="e.g. 🚀 Deploy Alert" />
     </div>
-    <div class="field">
-      <label>Category</label>
-      <input type="text" id="tplCategory" placeholder="CI/CD, Git, Team, Personal…" />
-    </div>
-    <div class="field">
-      <label>Description</label>
-      <input type="text" id="tplDesc" placeholder="Short description" />
+    <div class="row">
+      <div class="field">
+        <label>Category</label>
+        <input type="text" id="tplCategory" placeholder="CI/CD, Git, Team…" />
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <input type="text" id="tplDesc" placeholder="Short description" />
+      </div>
     </div>
     <div class="field">
       <label>Message Text <span class="hint-label">Use {{workspace}}, {{file}}, {{time}}, {{date}}, {{gitBranch}}, {{selection}}, {{user}}</span></label>
-      <textarea id="tplText" style="min-height:90px" placeholder="🚀 *Deploy started*&#10;&#10;📁 \`{{workspace}}\`&#10;🌿 Branch: \`{{gitBranch}}\`&#10;🕐 {{time}}"></textarea>
+      <textarea id="tplText" style="min-height:100px" placeholder="🚀 *Deploy started*&#10;&#10;📁 \`{{workspace}}\`&#10;🌿 Branch: \`{{gitBranch}}\`&#10;🕐 {{time}}"></textarea>
     </div>
     <div class="actions">
-      <button class="btn primary" onclick="createTemplate()">💾 Save Template</button>
+      <button class="btn primary" onclick="createTemplate()"><span class="btn-icon">💾</span>Save Template</button>
     </div>
     <div id="alert3" class="alert"></div>
   </div>
@@ -465,18 +538,20 @@ a.link:hover{text-decoration:underline}
 <!-- ════════════════ ADVANCED TAB ════════════════ -->
 <div class="tab-pane ${(s.initialTab as string) === 'advanced' ? 'active' : ''}" id="tab-advanced">
   <div class="section">
-    <div class="sec-title">⚙️ Message Settings</div>
-    <div class="field">
-      <label>Parse Mode</label>
-      <select id="parseMode">
-        <option value="Markdown" ${s.parseMode === 'Markdown' ? 'selected' : ''}>Markdown</option>
-        <option value="HTML"     ${s.parseMode === 'HTML'     ? 'selected' : ''}>HTML</option>
-        <option value="MarkdownV2" ${s.parseMode === 'MarkdownV2' ? 'selected' : ''}>MarkdownV2</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Max Code Length <span class="hint-label">chars before sending as file</span></label>
-      <input type="number" id="maxCodeLength" value="${s.maxCodeLength}" min="100" max="10000" />
+    <div class="sec-title"><span class="sec-icon">⚙️</span>Message Settings</div>
+    <div class="row">
+      <div class="field">
+        <label>Parse Mode</label>
+        <select id="parseMode">
+          <option value="Markdown" ${s.parseMode === 'Markdown' ? 'selected' : ''}>Markdown</option>
+          <option value="HTML"     ${s.parseMode === 'HTML'     ? 'selected' : ''}>HTML</option>
+          <option value="MarkdownV2" ${s.parseMode === 'MarkdownV2' ? 'selected' : ''}>MarkdownV2</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Max Code Length <span class="hint-label">chars before sending as file</span></label>
+        <input type="number" id="maxCodeLength" value="${s.maxCodeLength}" min="100" max="10000" />
+      </div>
     </div>
     <div class="field">
       <label>Message Prefix</label>
@@ -485,22 +560,22 @@ a.link:hover{text-decoration:underline}
   </div>
 
   <div class="section">
-    <div class="sec-title">📡 Broadcast — Additional Chats</div>
+    <div class="sec-title"><span class="sec-icon">📡</span>Broadcast — Additional Chats</div>
     <div class="field">
       <label>Extra Chat IDs <span class="hint-label">one per line, for broadcast</span></label>
-      <textarea id="additionalChats" style="min-height:80px" placeholder="-1001234567890&#10;@myteamchannel">${additionalChats}</textarea>
+      <textarea id="additionalChats" style="min-height:90px" placeholder="-1001234567890&#10;@myteamchannel">${additionalChats}</textarea>
     </div>
   </div>
 
   <div class="section">
-    <div class="sec-title">🤖 Auto-Send</div>
+    <div class="sec-title"><span class="sec-icon">🤖</span>Auto-Send</div>
     <div class="toggles" style="grid-template-columns:1fr">
       ${toggle('autoSendOnError', '🔴 Auto-send uncaught errors to Telegram', s.autoSendOnError as boolean)}
     </div>
   </div>
 
   <div class="actions">
-    <button class="btn primary" onclick="saveAdvanced()">💾 Save Advanced Settings</button>
+    <button class="btn primary" onclick="saveAdvanced()"><span class="btn-icon">💾</span>Save Advanced Settings</button>
   </div>
   <div id="alert4" class="alert"></div>
 </div>
@@ -508,23 +583,71 @@ a.link:hover{text-decoration:underline}
 <!-- ════════════════ STATS TAB ════════════════ -->
 <div class="tab-pane ${(s.initialTab as string) === 'stats' ? 'active' : ''}" id="tab-stats">
   <div class="section">
-    <div class="sec-title">📊 Session Statistics</div>
+    <div class="sec-title"><span class="sec-icon">📊</span>Session Statistics</div>
     <div class="stats-grid" id="statsGrid">
-      <div class="stat-card"><div class="stat-val" id="statTotal">—</div><div class="stat-lbl">Total Messages</div></div>
-      <div class="stat-card"><div class="stat-val" id="statSent" style="color:#4CAF50">—</div><div class="stat-lbl">Sent OK</div></div>
-      <div class="stat-card"><div class="stat-val" id="statFailed" style="color:#f44336">—</div><div class="stat-lbl">Failed</div></div>
-      <div class="stat-card"><div class="stat-val" id="statInbox" style="color:#FF9800">—</div><div class="stat-lbl">Received</div></div>
+      <div class="stat-card">
+        <div class="stat-icon">📨</div>
+        <div class="stat-val" id="statTotal">—</div>
+        <div class="stat-lbl">Total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-val" id="statSent">—</div>
+        <div class="stat-lbl">Sent</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">❌</div>
+        <div class="stat-val" id="statFailed">—</div>
+        <div class="stat-lbl">Failed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📥</div>
+        <div class="stat-val" id="statInbox">—</div>
+        <div class="stat-lbl">Received</div>
+      </div>
     </div>
   </div>
 
   <div class="section">
-    <div class="sec-title">🤖 Bot Info</div>
-    <div id="botInfoBox" style="font-size:13px;line-height:1.7;color:rgba(255,255,255,.75)">
-      ${s.connected && s.botInfo ? `
-        <div>Username: <strong>@${(s.botInfo as {username?:string;first_name?:string}).username ?? '?'}</strong></div>
-        <div>Display Name: <strong>${(s.botInfo as {first_name?:string}).first_name ?? '?'}</strong></div>
-        <div>Bot ID: <code>${(s.botInfo as {id?:number}).id ?? '?'}</code></div>
-      ` : '<div style="color:rgba(255,255,255,.4)">Not connected</div>'}
+    <div class="sec-title"><span class="sec-icon">🤖</span>Bot Info</div>
+    ${s.connected && s.botInfo ? `
+      <div class="bot-info">
+        <div class="bot-avatar">🤖</div>
+        <div class="bot-details">
+          <div class="bot-name">${(s.botInfo as {first_name?:string}).first_name ?? 'Telegram Bot'}</div>
+          <div class="bot-username">@${(s.botInfo as {username?:string}).username ?? '?'}</div>
+          <div class="bot-id">ID: ${(s.botInfo as {id?:number}).id ?? '?'}</div>
+        </div>
+      </div>
+    ` : `
+      <div class="empty-state">
+        <div class="empty-icon">🔌</div>
+        <div class="empty-text">Not connected — configure your bot to see info</div>
+      </div>
+    `}
+  </div>
+  
+  <div class="section">
+    <div class="sec-title"><span class="sec-icon">📋</span>Connection Status</div>
+    <div class="toggles" style="grid-template-columns:1fr">
+      <div class="toggle-row ${s.connected ? 'active' : ''}">
+        <div class="toggle-label">
+          <div class="toggle-icon">${s.connected ? '✅' : '⭕'}</div>
+          <div>
+            <div class="toggle-text">${s.connected ? 'Connected' : 'Disconnected'}</div>
+            <div class="toggle-desc">${s.connected ? 'Ready to send messages' : 'Configure bot to connect'}</div>
+          </div>
+        </div>
+      </div>
+      <div class="toggle-row ${s.enablePolling ? 'active' : ''}">
+        <div class="toggle-label">
+          <div class="toggle-icon">📥</div>
+          <div>
+            <div class="toggle-text">Polling</div>
+            <div class="toggle-desc">${s.enablePolling ? 'Receiving messages' : 'Disabled'}</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

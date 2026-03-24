@@ -68,13 +68,19 @@ export class InboxItem extends vscode.TreeItem {
   constructor(public readonly message: TelegramMessage) {
     const sender = message.from?.first_name ?? 'Unknown';
     const text = message.text ?? '[media]';
-    const short = text.length > 60 ? text.substring(0, 60) + '…' : text;
+    const short = text.length > 50 ? text.substring(0, 50) + '…' : text;
     super(`${sender}: ${short}`, vscode.TreeItemCollapsibleState.None);
 
     const date = new Date(message.date * 1000);
-    this.description = date.toLocaleTimeString();
-    this.tooltip = `From: ${sender} (@${message.from?.username ?? 'n/a'})\n${date.toLocaleString()}\n\n${text}`;
-    this.iconPath = new vscode.ThemeIcon('comment');
+    this.description = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    this.tooltip = new vscode.MarkdownString(
+      `**From:** ${sender} @${message.from?.username ?? 'unknown'}\n` +
+      `**Time:** ${date.toLocaleString()}\n\n` +
+      `---\n\n` +
+      `${text}`
+    );
+    this.tooltip.isTrusted = true;
+    this.iconPath = new vscode.ThemeIcon('comment', new vscode.ThemeColor('charts.blue'));
     this.contextValue = 'inboxItem';
   }
 }

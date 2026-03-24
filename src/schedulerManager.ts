@@ -107,11 +107,23 @@ export class ScheduledItem extends vscode.TreeItem {
     const sendAt = new Date(scheduled.sendAt);
     const label = scheduled.label ?? scheduled.text.substring(0, 40);
     super(label, vscode.TreeItemCollapsibleState.None);
-    this.description = sendAt.toLocaleString();
+    
     const remaining = scheduled.sendAt - Date.now();
     const minutes = Math.round(remaining / 60_000);
-    this.tooltip = `Sends in ${minutes < 60 ? `${minutes}m` : `${Math.round(minutes/60)}h`}\n${scheduled.text}`;
-    this.iconPath = new vscode.ThemeIcon('clock');
+    const relativeTime = minutes < 60 ? `${minutes}m` : minutes < 1440 ? `${Math.round(minutes/60)}h` : `${Math.round(minutes/1440)}d`;
+    
+    this.description = `${relativeTime} • ${sendAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    
+    this.tooltip = new vscode.MarkdownString(
+      `**Scheduled:** ${sendAt.toLocaleString()}\n\n` +
+      `---\n\n` +
+      `${scheduled.text}\n\n` +
+      `---\n\n` +
+      `*Will send in ${relativeTime}*`
+    );
+    this.tooltip.isTrusted = true;
+    
+    this.iconPath = new vscode.ThemeIcon('clock', new vscode.ThemeColor('symbolIcon.clockForeground'));
     this.contextValue = 'scheduled';
   }
 }

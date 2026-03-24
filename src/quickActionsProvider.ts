@@ -1,6 +1,12 @@
 import * as vscode from 'vscode';
 import { TelegramService } from './telegramService';
 
+interface ActionCategory {
+  name: string;
+  icon: string;
+  actions: ActionDef[];
+}
+
 interface ActionDef {
   label: string;
   icon: string;
@@ -9,33 +15,65 @@ interface ActionDef {
   description?: string;
 }
 
-const ACTIONS: ActionDef[] = [
-  { label: 'Configure',            icon: 'settings-gear',     command: 'telegramBridge.configure' },
-  { label: 'Test Connection',      icon: 'plug',              command: 'telegramBridge.testConnection',      connectedOnly: true },
-  { label: 'Switch Profile',       icon: 'account',           command: 'telegramBridge.switchProfile',       connectedOnly: false },
-  { label: '─────────────────',    icon: 'dash',              command: '', },
-  { label: 'Send Message',         icon: 'comment',           command: 'telegramBridge.sendMessage',         connectedOnly: true },
-  { label: 'Message Composer',     icon: 'edit',              command: 'telegramBridge.openComposer',        connectedOnly: true },
-  { label: 'Send from Template',   icon: 'list-selection',    command: 'telegramBridge.sendFromTemplate',    connectedOnly: true },
-  { label: 'Broadcast to All',     icon: 'broadcast',         command: 'telegramBridge.broadcastMessage',    connectedOnly: true },
-  { label: '─────────────────',    icon: 'dash',              command: '' },
-  { label: 'Send Selected Code',   icon: 'code',              command: 'telegramBridge.sendSelection',       connectedOnly: true },
-  { label: 'Send Current File',    icon: 'file-code',         command: 'telegramBridge.sendFile',            connectedOnly: true },
-  { label: 'Send Workspace Errors',icon: 'error',             command: 'telegramBridge.sendDiagnostics',     connectedOnly: true },
-  { label: 'Send Git Status',      icon: 'source-control',    command: 'telegramBridge.sendGitStatus',       connectedOnly: true },
-  { label: 'Send System Info',     icon: 'info',              command: 'telegramBridge.sendSystemInfo',      connectedOnly: true },
-  { label: '─────────────────',    icon: 'dash',              command: '' },
-  { label: 'Schedule Message',     icon: 'clock',             command: 'telegramBridge.scheduleMessage',     connectedOnly: true },
-  { label: 'Create Poll',          icon: 'graph',             command: 'telegramBridge.createPoll',          connectedOnly: true },
-  { label: 'Toggle Notifications', icon: 'bell',              command: 'telegramBridge.toggleNotifications' },
-  { label: 'Toggle Polling',       icon: 'arrow-down',        command: 'telegramBridge.togglePolling' },
-  { label: '─────────────────',    icon: 'dash',              command: '' },
-  { label: 'Export Logs',          icon: 'export',            command: 'telegramBridge.exportLogs' },
-  { label: 'Workspace Config',     icon: 'file-code',         command: 'telegramBridge.workspaceConfig' },
-  { label: 'Disconnect',           icon: 'debug-disconnect',  command: 'telegramBridge.disconnect',          connectedOnly: true },
+const CATEGORIES: ActionCategory[] = [
+  {
+    name: 'Connection',
+    icon: 'plug',
+    actions: [
+      { label: '⚙️ Configure', icon: 'settings-gear', command: 'telegramBridge.configure' },
+      { label: '🔗 Test Connection', icon: 'plug', command: 'telegramBridge.testConnection', connectedOnly: true, description: 'Test your bot connection' },
+      { label: '👤 Switch Profile', icon: 'account', command: 'telegramBridge.switchProfile', description: 'Switch between bot profiles' },
+      { label: '📴 Disconnect', icon: 'debug-disconnect', command: 'telegramBridge.disconnect', connectedOnly: true },
+    ]
+  },
+  {
+    name: 'Send Messages',
+    icon: 'send',
+    actions: [
+      { label: '✉️ Send Message', icon: 'comment', command: 'telegramBridge.sendMessage', connectedOnly: true, description: 'Send a quick message' },
+      { label: '✏️ Composer', icon: 'edit', command: 'telegramBridge.openComposer', connectedOnly: true, description: 'Open rich message composer' },
+      { label: '📋 Templates', icon: 'list-selection', command: 'telegramBridge.sendFromTemplate', connectedOnly: true, description: 'Send from saved templates' },
+      { label: '📡 Broadcast', icon: 'broadcast', command: 'telegramBridge.broadcastMessage', connectedOnly: true, description: 'Send to all configured chats' },
+    ]
+  },
+  {
+    name: 'Send Content',
+    icon: 'file-code',
+    actions: [
+      { label: '📄 Selected Code', icon: 'code', command: 'telegramBridge.sendSelection', connectedOnly: true, description: 'Send selected code' },
+      { label: '📁 Current File', icon: 'file-code', command: 'telegramBridge.sendFile', connectedOnly: true, description: 'Send entire file' },
+      { label: '🔴 Errors', icon: 'error', command: 'telegramBridge.sendDiagnostics', connectedOnly: true, description: 'Send workspace errors' },
+      { label: '🔀 Git Status', icon: 'source-control', command: 'telegramBridge.sendGitStatus', connectedOnly: true, description: 'Send git status' },
+      { label: '💻 System Info', icon: 'info', command: 'telegramBridge.sendSystemInfo', connectedOnly: true, description: 'Send system information' },
+    ]
+  },
+  {
+    name: 'Tools',
+    icon: 'tools',
+    actions: [
+      { label: '⏰ Schedule', icon: 'clock', command: 'telegramBridge.scheduleMessage', connectedOnly: true, description: 'Schedule a message' },
+      { label: '📊 Create Poll', icon: 'graph', command: 'telegramBridge.createPoll', connectedOnly: true, description: 'Create a Telegram poll' },
+    ]
+  },
+  {
+    name: 'Settings',
+    icon: 'gear',
+    actions: [
+      { label: '🔔 Toggle Notifications', icon: 'bell', command: 'telegramBridge.toggleNotifications', description: 'Enable/disable build alerts' },
+      { label: '📥 Toggle Polling', icon: 'arrow-down', command: 'telegramBridge.togglePolling', description: 'Enable/disable message polling' },
+    ]
+  },
+  {
+    name: 'Utility',
+    icon: 'wrench',
+    actions: [
+      { label: '📤 Export Logs', icon: 'export', command: 'telegramBridge.exportLogs', description: 'Export message logs' },
+      { label: '📂 Workspace Config', icon: 'file-code', command: 'telegramBridge.workspaceConfig', description: 'Edit workspace config' },
+    ]
+  }
 ];
 
-export class QuickActionsProvider implements vscode.TreeDataProvider<QuickActionItem> {
+export class QuickActionsProvider implements vscode.TreeDataProvider<QuickActionItem | QuickActionCategory> {
   private _onDidChange = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChange.event;
 
@@ -43,30 +81,40 @@ export class QuickActionsProvider implements vscode.TreeDataProvider<QuickAction
     _service.onConnectionChange(() => this._onDidChange.fire());
   }
 
-  getTreeItem(el: QuickActionItem): vscode.TreeItem { return el; }
+  getTreeItem(el: QuickActionItem | QuickActionCategory): vscode.TreeItem { return el; }
 
-  getChildren(): QuickActionItem[] {
+  getChildren(): (QuickActionItem | QuickActionCategory)[] {
     const connected = this._service.isConnected();
-    return ACTIONS
-      .filter(a => !a.connectedOnly || connected)
-      .map(a => new QuickActionItem(a));
+    const result: (QuickActionItem | QuickActionCategory)[] = [];
+    
+    for (const cat of CATEGORIES) {
+      const validActions = cat.actions.filter(a => !a.connectedOnly || connected);
+      if (validActions.length > 0) {
+        result.push(new QuickActionCategory(cat.name, cat.icon, validActions.length));
+        for (const action of validActions) {
+          result.push(new QuickActionItem(action));
+        }
+      }
+    }
+    
+    return result;
+  }
+}
+
+class QuickActionCategory extends vscode.TreeItem {
+  constructor(name: string, icon: string, count: number) {
+    super(`${name}  (${count})`, vscode.TreeItemCollapsibleState.Collapsed);
+    this.iconPath = new vscode.ThemeIcon(icon, new vscode.ThemeColor('testing.iconPassed'));
+    this.contextValue = 'category';
   }
 }
 
 class QuickActionItem extends vscode.TreeItem {
   constructor(def: ActionDef) {
     super(def.label, vscode.TreeItemCollapsibleState.None);
-
-    // Separator rows
-    if (!def.command) {
-      this.iconPath = new vscode.ThemeIcon('dash');
-      this.contextValue = 'separator';
-      return;
-    }
-
     this.iconPath = new vscode.ThemeIcon(def.icon);
-    this.tooltip  = def.description ?? def.label;
-    this.command  = { command: def.command, title: def.label };
+    this.tooltip = def.description ?? def.label;
+    this.command = { command: def.command, title: def.label };
     this.contextValue = 'quickAction';
   }
 }

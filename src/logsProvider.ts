@@ -109,15 +109,22 @@ export class LogsProvider implements vscode.TreeDataProvider<LogItem> {
 class LogItem extends vscode.TreeItem {
   constructor(entry: LogEntry) {
     const time = entry.timestamp.toLocaleTimeString('en', { hour12: false });
-    const dirIcon = entry.direction === 'outbound' ? '↑' : entry.direction === 'inbound' ? '↓' : '•';
+    const dirIcon = entry.direction === 'outbound' ? '📤' : entry.direction === 'inbound' ? '📥' : 'ℹ️';
     super(`${dirIcon} ${time}  ${entry.message}`, vscode.TreeItemCollapsibleState.None);
 
-    this.tooltip = `[${entry.direction.toUpperCase()}] ${entry.type.toUpperCase()}\n${entry.message}\n${entry.timestamp.toLocaleString()}`;
+    this.tooltip = new vscode.MarkdownString(
+      `**${entry.direction.toUpperCase()}** • ${entry.type.toUpperCase()}\n\n` +
+      `${entry.message}\n\n` +
+      `---\n\n` +
+      `*${entry.timestamp.toLocaleString()}*`
+    );
+    this.tooltip.isTrusted = true;
 
     const color =
       entry.type === 'success' ? new vscode.ThemeColor('testing.iconPassed') :
       entry.type === 'error'   ? new vscode.ThemeColor('testing.iconFailed') :
-      entry.type === 'warning' ? new vscode.ThemeColor('editorWarning.foreground') : undefined;
+      entry.type === 'warning' ? new vscode.ThemeColor('editorWarning.foreground') :
+      entry.direction === 'inbound' ? new vscode.ThemeColor('charts.blue') : undefined;
 
     const icon =
       entry.type === 'success' ? 'check' :

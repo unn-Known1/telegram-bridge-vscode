@@ -155,8 +155,8 @@ export class TemplatesProvider implements vscode.TreeDataProvider<TemplateItem |
 
 export class CategoryItem extends vscode.TreeItem {
   constructor(public readonly category: string, count: number) {
-    super(`${category} (${count})`, vscode.TreeItemCollapsibleState.Collapsed);
-    this.iconPath = new vscode.ThemeIcon('folder');
+    super(`${category}  (${count})`, vscode.TreeItemCollapsibleState.Collapsed);
+    this.iconPath = new vscode.ThemeIcon('folder', new vscode.ThemeColor('testing.iconPassed'));
     this.contextValue = 'category';
   }
 }
@@ -165,9 +165,19 @@ export class TemplateItem extends vscode.TreeItem {
   constructor(public readonly template: MessageTemplate) {
     super(template.name, vscode.TreeItemCollapsibleState.None);
     this.description = template.description ?? '';
-    this.tooltip = template.text.substring(0, 120);
+    
+    this.tooltip = new vscode.MarkdownString(
+      `**${template.name}**\n\n` +
+      `${template.text.substring(0, 150)}${template.text.length > 150 ? '...' : ''}\n\n` +
+      `---\n\n` +
+      `*Category: ${template.category ?? 'General'}*`
+    );
+    this.tooltip.isTrusted = true;
+    
+    const isBuiltin = template.id.startsWith('builtin-');
     this.iconPath = new vscode.ThemeIcon(
-      template.id.startsWith('builtin-') ? 'symbol-snippet' : 'file-text'
+      isBuiltin ? 'symbol-snippet' : 'file-text',
+      isBuiltin ? new vscode.ThemeColor('testing.iconPassed') : new vscode.ThemeColor('charts.blue')
     );
     this.command = { command: 'telegramBridge.useTemplate', title: 'Send', arguments: [template.id] };
     this.contextValue = 'template';
