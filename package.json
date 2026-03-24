@@ -2,7 +2,7 @@
   "name": "telegram-bridge",
   "displayName": "Telegram Bridge - VS Code Telegram Integration",
   "description": "Send messages, code, files from VS Code to Telegram. Get build notifications, debug alerts, terminal control, and execute commands directly from Telegram. The ultimate developer productivity tool.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "publisher": "telegram-bridge",
   "icon": "media/icon.png",
   "galleryBanner": { "color": "#0d1b2a", "theme": "dark" },

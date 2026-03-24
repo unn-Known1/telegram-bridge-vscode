@@ -2,7 +2,7 @@
 
 > **Send messages, code, and commands from VS Code to Telegram. Get instant notifications for builds, debug sessions, file changes, and execute terminal commands directly from Telegram.**
 
-[![Version](https://img.shields.io/badge/version-2.0.0-brightgreen)](#)
+[![Version](https://img.shields.io/badge/version-2.1.0-brightgreen)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![VS Code](https://img.shields.io/badge/VS%20Code-1.85+-blue?logo=visual-studio-code)](https://code.visualstudio.com/)
