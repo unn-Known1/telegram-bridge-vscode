@@ -5,7 +5,33 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
-## [2.1.0] — 2025-03-24 — Major Update: Terminal & Webhook Support
+## [2.1.0] — 2026-03-24 — Major UI/UX Improvements
+
+### 🎨 UI/UX Improvements
+- Comprehensive visual redesign with glassmorphism effects
+- Modern dark/light theme toggle (persists to localStorage)
+- Smooth animations and transitions
+- Enhanced status bar with rich markdown tooltips
+- Categorized quick actions sidebar with collapsible groups
+- Improved tree view items with better icons and colors
+- Better color compatibility for light themes
+
+### 🐛 Bug Fixes
+- Fixed terminal command race condition
+- Added proper dispose handlers for all managers
+- Inbox messages now persist across restarts
+- Fixed unused parameter warnings
+- Updated version string to 2.1.0
+- Workspace config now supports 20+ settings
+
+### ⚙️ Enhancements
+- Expanded workspace config (.telegram-bridge.json) with all notification settings
+- Improved error recovery handling
+- Better keyboard shortcuts configuration
+
+---
+
+## [2.0.1] — 2025-03-24 — Major Update: Terminal & Webhook Support
 
 ### 🎉 New Features
 
