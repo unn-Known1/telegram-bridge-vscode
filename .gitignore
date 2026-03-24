@@ -5,3 +5,5 @@ out/
 *.js.map
 .DS_Store
 Thumbs.db
+*.ipynb
+.ipynb_checkpoints/
