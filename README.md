@@ -1,15 +1,31 @@
-# ✈️ Telegram Bridge for VS Code
+# Telegram Bridge - VS Code Telegram Integration
 
-> **The developer's Telegram superpower — inside your IDE.**
-> Send code, receive messages, track builds, report errors, schedule reminders — without leaving VS Code.
+> **Send messages, code, and commands from VS Code to Telegram. Get instant notifications for builds, debug sessions, file changes, and execute terminal commands directly from Telegram.**
 
 [![Version](https://img.shields.io/badge/version-2.0.0-brightgreen)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![VS Code](https://img.shields.io/badge/VS%20Code-1.85+-blue?logo=visual-studio-code)](https://code.visualstudio.com/)
 
 ---
 
-## 🚀 Feature Overview
+## Why Telegram Bridge?
+
+**Telegram Bridge** is the ultimate VS Code extension for developers who use Telegram. Connect your IDE to Telegram and:
+
+- **Send code & files** directly from VS Code to Telegram chats
+- **Receive notifications** for builds, debug sessions, git commits, and errors
+- **Execute terminal commands** from Telegram - run builds, tests, deployments remotely
+- **Control your workflow** using Telegram commands like `/sh`, `/run`, `/status`
+- **Use inline keyboards** to trigger actions with button clicks
+- **Schedule messages** for future delivery
+- **Manage multiple bot profiles** for different projects or teams
+
+Perfect for remote development, CI/CD monitoring, and staying connected to your projects from anywhere.
+
+---
+
+## Features
 
 | Feature | Description |
 |---|---|
@@ -29,6 +45,11 @@
 | 📂 **Per-project Config** | `.telegram-bridge.json` for workspace-specific settings |
 | 📊 **Stats & Logs** | Persistent log with CSV/JSON export |
 | 💻 **System Info** | Send OS/CPU/RAM/Node info to Telegram |
+| 🔗 **Webhook Support** | Receive messages instantly via webhook instead of polling |
+| 📁 **File Watcher** | Get notified when specific files change (configurable patterns) |
+| ⌨️ **Inline Keyboards** | Send messages with interactive buttons |
+| 🖥️ **Terminal Commands** | Execute shell commands from Telegram (/sh, /run, /term) |
+| 📴 **Offline Queue** | Messages queue when offline, auto-send on reconnect |
 
 ---
 
@@ -75,6 +96,24 @@ Open Telegram → search **[@BotFather](https://t.me/BotFather)** → `/newbot` 
 
 > **Right-click** in the editor → Send Selection / Send File / Send Errors  
 > **Right-click** in Source Control panel → Send Git Status
+
+---
+
+## 🤖 Telegram Bot Commands
+
+Send these commands directly from Telegram to control VS Code:
+
+| Command | Description |
+|---------|-------------|
+| `/status` | Send current git status |
+| `/info` | Send system information |
+| `/errors` | Send workspace diagnostics |
+| `/sh <command>` | Execute shell command, get output |
+| `/run <command>` | Run command in VS Code terminal |
+| `/term <name>` | Create/use named terminal |
+| `/terminals` | List active terminals |
+| `/kill <name>` | Kill a terminal |
+| `/help` | Show available commands |
 
 ---
 
@@ -190,7 +229,7 @@ code --install-extension telegram-bridge-2.0.0.vsix
 
 ## 🗺️ Roadmap
 
-- [ ] Webhook support (receive without polling)
+Upcoming features:
 - [ ] Attach images from clipboard
 - [ ] Recurring scheduled messages (cron)
 - [ ] GitHub/GitLab CI webhook relay
@@ -204,4 +243,13 @@ code --install-extension telegram-bridge-2.0.0.vsix
 
 ---
 
-<p align="center"><strong>Built for developers who live in their editor.</strong></p>
+## ⭐ Support
+
+If you find Telegram Bridge useful, please:
+- Star the [GitHub repository](https://github.com/unn-Known1/telegram-bridge-vscode)
+- Leave a review on the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=telegram-bridge.telegram-bridge)
+- Report issues on [GitHub](https://github.com/unn-Known1/telegram-bridge-vscode/issues)
+
+---
+
+<p align="center"><strong>Built for developers who want to control their workflow from Telegram.</strong></p>

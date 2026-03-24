@@ -5,6 +5,45 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) | [Semantic Ver
 
 ---
 
+## [2.1.0] — 2025-03-24 — Major Update: Terminal & Webhook Support
+
+### 🎉 New Features
+
+#### Telegram Terminal Integration
+- Execute shell commands directly from Telegram with `/sh <command>`
+- Run commands in VS Code terminals with `/run <command>`
+- Create and manage named terminals: `/term <name>`
+- List active terminals: `/terminals`
+- Kill terminals: `/kill <name>`
+- Real-time output sent back to Telegram
+
+#### Webhook Support
+- Enable webhook for instant incoming messages (no polling needed)
+- Configurable webhook port (default: 3456)
+- Toggle via command: `telegramBridge.toggleWebhook`
+
+#### File Watcher Notifications
+- Watch specific file patterns for changes
+- Get notified when files are created, modified, or deleted
+- Configurable patterns like `*.ts`, `src/**`, `*.json`
+
+#### Inline Keyboards
+- Send messages with interactive callback buttons
+- Buttons can trigger VS Code actions (build, test, status)
+- New command: `telegramBridge.sendWithKeyboard`
+
+#### Telegram Commands
+- Register custom commands from Telegram
+- Built-in commands: `/status`, `/info`, `/errors`, `/help`
+- Full command system extensible
+
+#### Offline Message Queue
+- Messages automatically queue when disconnected
+- Auto-flush queued messages when reconnected
+- Queue length visible in config webview
+
+---
+
 ## [2.0.0] — 2025-03-23 — Major Feature Release
 
 ### 🎉 New Features

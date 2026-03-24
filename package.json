@@ -1,14 +1,14 @@
 {
   "name": "telegram-bridge",
-  "displayName": "Telegram Bridge",
-  "description": "The developer's Telegram superpower inside VS Code. Send code, receive messages, watch builds, track errors, schedule reminders — all from your IDE.",
+  "displayName": "Telegram Bridge - VS Code Telegram Integration",
+  "description": "Send messages, code, files from VS Code to Telegram. Get build notifications, debug alerts, terminal control, and execute commands directly from Telegram. The ultimate developer productivity tool.",
   "version": "2.0.0",
   "publisher": "telegram-bridge",
   "icon": "media/icon.png",
   "galleryBanner": { "color": "#0d1b2a", "theme": "dark" },
   "engines": { "vscode": "^1.85.0" },
-  "categories": ["Other","Snippets","Visualization","Debuggers"],
-  "keywords": ["telegram","bot","notifications","messaging","productivity","devtools","alerts","bridge","git","build","debug","scheduler","templates","multi-chat","terminal","diagnostics"],
+  "categories": ["Other","Snippets","Visualization","Debuggers","Productivity","Developer Tools"],
+  "keywords": ["telegram","telegram bot","telegram messenger","vscode telegram","send code","telegram notifications","telegram alerts","build notifications","telegram integration","ide telegram","telegram terminal","remote execution","developer tools","telegram bridge","messaging","productivity","devtools","alerts","bridge","git","build","debug","scheduler","templates","multi-chat","terminal","diagnostics","ci cd","telegram webhook","inline keyboard","command execution","remote terminal","telegram client","chatops","devops","automation"],
   "activationEvents": ["onStartupFinished"],
   "main": "./out/extension.js",
   "contributes": {
