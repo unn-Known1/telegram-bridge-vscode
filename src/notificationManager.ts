@@ -113,6 +113,12 @@ export class NotificationManager {
   getGitIntegration(): GitIntegration { return this._gitIntegration; }
   getDiagnostics(): DiagnosticsReporter { return this._diagnostics; }
 
+  dispose(): void {
+    this._disposeFileWatcher();
+    this._gitIntegration.dispose();
+    this._diagnostics.dispose();
+  }
+
   private _disposeFileWatcher(): void {
     if (this._fileWatcher) {
       this._fileWatcher.dispose();

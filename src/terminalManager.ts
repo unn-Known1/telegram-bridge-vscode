@@ -81,62 +81,68 @@ export class TerminalManager {
 
     const cwdPath = cwd || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
 
-    const child = spawn(shell, shellArgs, {
-      cwd: cwdPath,
-      env: { ...process.env },
-      shell: false
-    });
+    return new Promise<void>((resolve) => {
+      const child = spawn(shell, shellArgs, {
+        cwd: cwdPath,
+        env: { ...process.env },
+        shell: false
+      });
 
-    let stdout = '';
-    let stderr = '';
-    let output = '';
+      let output = '';
 
-    child.stdout.on('data', (data) => {
-      const text = data.toString();
-      stdout += text;
-      output += text;
-      if (output.length > maxOutput) {
-        output = output.slice(-maxOutput);
-      }
-    });
+      child.stdout.on('data', (data) => {
+        const text = data.toString();
+        output += text;
+        if (output.length > maxOutput) {
+          output = output.slice(-maxOutput);
+        }
+      });
 
-    child.stderr.on('data', (data) => {
-      const text = data.toString();
-      stderr += text;
-      output += text;
-      if (output.length > maxOutput) {
-        output = output.slice(-maxOutput);
-      }
-    });
+      child.stderr.on('data', (data) => {
+        const text = data.toString();
+        output += text;
+        if (output.length > maxOutput) {
+          output = output.slice(-maxOutput);
+        }
+      });
 
-    const timeout = setTimeout(() => {
-      child.kill();
-    }, 120000);
+      const timeout = setTimeout(() => {
+        child.kill();
+      }, 120000);
 
-    child.on('close', async (code) => {
-      clearTimeout(timeout);
-      
-      let result = '';
-      if (output) {
-        result = `\`\`\`\n${output}\n\`\`\``;
-      }
-      
-      if (code === 0) {
-        await this._telegram.sendMessage(
-          `✅ *Command completed*\n\n📁 \`${ws}\`\n$ ${command}\n\n${result}`
-        );
-      } else {
-        await this._telegram.sendMessage(
-          `❌ *Command failed* (exit code: ${code})\n\n📁 \`${ws}\`\n$ ${command}\n\n${result}`
-        );
-      }
-    });
+      child.on('close', (code) => {
+        clearTimeout(timeout);
+        
+        let result = '';
+        if (output) {
+          result = `\`\`\`\n${output}\n\`\`\``;
+        }
+        
+        const sendResult = async () => {
+          if (code === 0) {
+            await this._telegram.sendMessage(
+              `✅ *Command completed*\n\n📁 \`${ws}\`\n$ ${command}\n\n${result}`
+            );
+          } else {
+            await this._telegram.sendMessage(
+              `❌ *Command failed* (exit code: ${code})\n\n📁 \`${ws}\`\n$ ${command}\n\n${result}`
+            );
+          }
+          resolve();
+        };
+        sendResult();
+      });
 
-    child.on('error', async (err) => {
-      clearTimeout(timeout);
-      await this._telegram.sendMessage(
-        `❌ *Error:* ${err.message}`
-      );
+      child.on('error', (err) => {
+        clearTimeout(timeout);
+        const sendError = async () => {
+          await this._telegram.sendMessage(
+            `❌ *Error:* ${err.message}`
+          );
+          resolve();
+        };
+        sendError();
+      });
     });
   }
 
@@ -185,5 +191,12 @@ export class TerminalManager {
       terminal.show();
       terminal.sendText(command);
     }
+  }
+
+  dispose(): void {
+    for (const terminal of this._terminals.values()) {
+      terminal.dispose();
+    }
+    this._terminals.clear();
   }
 }

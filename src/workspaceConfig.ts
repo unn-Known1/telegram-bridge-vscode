@@ -9,9 +9,22 @@ export interface WorkspaceConfig {
   messagePrefix?: string;
   notifyOnBuildSuccess?: boolean;
   notifyOnBuildFailure?: boolean;
+  notifyOnDebugStart?: boolean;
+  notifyOnDebugStop?: boolean;
+  notifyOnFileSave?: boolean;
+  notifyOnFileChange?: boolean;
   notifyOnGitCommit?: boolean;
+  notifyOnDiagnosticError?: boolean;
   silentNotifications?: boolean;
   additionalChats?: string[];
+  enablePolling?: boolean;
+  pollingInterval?: number;
+  enableWebhook?: boolean;
+  webhookPort?: number;
+  parseMode?: string;
+  maxCodeLength?: number;
+  autoSendOnError?: boolean;
+  fileWatcherPatterns?: string[];
 }
 
 const CONFIG_FILENAME = '.telegram-bridge.json';
@@ -42,9 +55,22 @@ export class WorkspaceConfigManager {
         messagePrefix: '💻 VS Code',
         notifyOnBuildSuccess: true,
         notifyOnBuildFailure: true,
+        notifyOnDebugStart: false,
+        notifyOnDebugStop: false,
+        notifyOnFileSave: false,
+        notifyOnFileChange: false,
         notifyOnGitCommit: false,
+        notifyOnDiagnosticError: false,
         silentNotifications: false,
-        additionalChats: []
+        additionalChats: [],
+        enablePolling: false,
+        pollingInterval: 5,
+        enableWebhook: false,
+        webhookPort: 3456,
+        parseMode: 'Markdown',
+        maxCodeLength: 3000,
+        autoSendOnError: false,
+        fileWatcherPatterns: []
       };
       fs.writeFileSync(cfgPath, JSON.stringify(template, null, 2), 'utf8');
     }
@@ -63,7 +89,6 @@ export class WorkspaceConfigManager {
 
     const cfg = vscode.workspace.getConfiguration('telegramBridge');
 
-    // Only override if workspace config explicitly sets the key
     const apply = async (key: string, value: unknown) => {
       if (value !== undefined) {
         await cfg.update(`telegramBridge.${key}`, value, vscode.ConfigurationTarget.Workspace);
@@ -74,8 +99,21 @@ export class WorkspaceConfigManager {
     apply('messagePrefix', wsCfg.messagePrefix);
     apply('notifyOnBuildSuccess', wsCfg.notifyOnBuildSuccess);
     apply('notifyOnBuildFailure', wsCfg.notifyOnBuildFailure);
+    apply('notifyOnDebugStart', wsCfg.notifyOnDebugStart);
+    apply('notifyOnDebugStop', wsCfg.notifyOnDebugStop);
+    apply('notifyOnFileSave', wsCfg.notifyOnFileSave);
+    apply('notifyOnFileChange', wsCfg.notifyOnFileChange);
     apply('notifyOnGitCommit', wsCfg.notifyOnGitCommit);
+    apply('notifyOnDiagnosticError', wsCfg.notifyOnDiagnosticError);
     apply('silentNotifications', wsCfg.silentNotifications);
     apply('additionalChats', wsCfg.additionalChats);
+    apply('enablePolling', wsCfg.enablePolling);
+    apply('pollingInterval', wsCfg.pollingInterval);
+    apply('enableWebhook', wsCfg.enableWebhook);
+    apply('webhookPort', wsCfg.webhookPort);
+    apply('parseMode', wsCfg.parseMode);
+    apply('maxCodeLength', wsCfg.maxCodeLength);
+    apply('autoSendOnError', wsCfg.autoSendOnError);
+    apply('fileWatcherPatterns', wsCfg.fileWatcherPatterns);
   }
 }

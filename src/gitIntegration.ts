@@ -79,4 +79,11 @@ export class GitIntegration {
       return execSync(cmd, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 5000 }).trim();
     } catch { return 'ERROR'; }
   }
+
+  dispose(): void {
+    if (this._fileWatcher) {
+      this._fileWatcher.dispose();
+      this._fileWatcher = undefined;
+    }
+  }
 }

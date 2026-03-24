@@ -545,11 +545,24 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   }, 3000);
   context.subscriptions.push({ dispose: () => clearInterval(statsInterval) });
 
+  // Store managers for cleanup on deactivate
+  context.subscriptions.push(new Disposable(() => {
+    schedulerManager.stop();
+    notificationMgr.dispose();
+    terminalManager.dispose();
+    statusBarManager.dispose();
+  }));
+
   console.log('[TelegramBridge] Activated ✅');
 }
 
+class Disposable implements vscode.Disposable {
+  constructor(private _dispose: () => void) {}
+  dispose(): void { this._dispose(); }
+}
+
 export function deactivate(): void {
-  console.log('[TelegramBridge] Deactivating');
+  console.log('[TelegramBridge] Deactivated');
 }
 
 // ─── Helpers ────────────────────────────────────────────────────
