@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as https from 'https';
+import * as http from 'http';
 import { LogEntry } from './logsProvider';
 
 export type EventListener<T> = (value: T) => void;
@@ -18,6 +19,22 @@ export interface TelegramMessage {
   text?: string;
   document?: { file_name?: string; file_id: string };
   photo?: unknown[];
+  callback_query?: {
+    id: string;
+    from: { id: number; username?: string; first_name: string };
+    message?: { message_id: number; chat: { id: number } };
+    data: string;
+  };
+}
+
+export interface InlineKeyboardButton {
+  text: string;
+  callback_data?: string;
+  url?: string;
+}
+
+export interface InlineKeyboardMarkup {
+  inline_keyboard: InlineKeyboardButton[][];
 }
 
 interface TelegramResponse<T = unknown> {
@@ -27,6 +44,19 @@ interface TelegramResponse<T = unknown> {
   error_code?: number;
 }
 
+interface OfflineMessage {
+  text: string;
+  chatId?: string;
+  silent: boolean;
+  timestamp: number;
+}
+
+interface TelegramCommand {
+  name: string;
+  description: string;
+  callback: (args?: string) => Promise<void>;
+}
+
 export class TelegramService {
   private _botToken = '';
   private _chatId = '';
@@ -34,9 +64,14 @@ export class TelegramService {
   private _botInfo: TelegramBotInfo | null = null;
   private _lastUpdateId = 0;
   private _pollingTimer: NodeJS.Timeout | undefined;
+  private _webhookServer: http.Server | undefined;
+  private _webhookSecret = '';
+  private _offlineQueue: OfflineMessage[] = [];
+  private _commands: TelegramCommand[] = [];
   private _logListeners: EventListener<LogEntry>[] = [];
   private _connectionListeners: EventListener<boolean>[] = [];
   private _incomingListeners: EventListener<TelegramMessage>[] = [];
+  private _callbackListeners: EventListener<{ data: string; messageId: number; chatId: number }>[] = [];
 
   constructor(private _context: vscode.ExtensionContext) {}
 
@@ -44,12 +79,14 @@ export class TelegramService {
   onLog(l: EventListener<LogEntry>)               { this._logListeners.push(l); }
   onConnectionChange(l: EventListener<boolean>)    { this._connectionListeners.push(l); }
   onIncomingMessage(l: EventListener<TelegramMessage>) { this._incomingListeners.push(l); }
+  onCallbackQuery(l: EventListener<{ data: string; messageId: number; chatId: number }>) { this._callbackListeners.push(l); }
 
   private _emit<T>(list: EventListener<T>[], v: T) { list.forEach(l => l(v)); }
 
   private _log(entry: LogEntry)         { this._emit(this._logListeners, entry); }
   private _connChange(c: boolean)       { this._emit(this._connectionListeners, c); }
   private _incoming(m: TelegramMessage) { this._emit(this._incomingListeners, m); }
+  private _callback(data: { data: string; messageId: number; chatId: number }) { this._emit(this._callbackListeners, data); }
 
   // ─── Getters ──────────────────────────────────────────────
   isConnected()    { return this._connected; }
@@ -75,8 +112,12 @@ export class TelegramService {
       this._botInfo = info;
       this._connChange(true);
       this._log({ timestamp: new Date(), type: 'info', message: `Connected as @${info.username}`, direction: 'system' });
+      
+      await this._flushOfflineQueue();
+      
       const cfg = vscode.workspace.getConfiguration('telegramBridge');
       if (cfg.get<boolean>('enablePolling', false)) { this.startPolling(); }
+      if (cfg.get<boolean>('enableWebhook', false)) { this.startWebhook(); }
       return true;
     }
     this._connected = false;
@@ -86,12 +127,169 @@ export class TelegramService {
 
   async disconnect(): Promise<void> {
     this.stopPolling();
+    this.stopWebhook();
     this._connected = false;
     this._botToken = '';
     this._chatId = '';
     this._botInfo = null;
     this._connChange(false);
     this._log({ timestamp: new Date(), type: 'info', message: 'Disconnected', direction: 'system' });
+  }
+
+  // ─── Webhook ───────────────────────────────────────────────
+  async startWebhook(): Promise<void> {
+    this.stopWebhook();
+    const cfg = vscode.workspace.getConfiguration('telegramBridge');
+    const port = cfg.get<number>('webhookPort', 3456);
+    this._webhookSecret = Math.random().toString(36).substring(2, 15);
+
+    this._webhookServer = http.createServer(async (req, res) => {
+      if (req.method === 'POST' && req.url === `/${this._webhookSecret}`) {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+          try {
+            const update = JSON.parse(body);
+            if (update.message) {
+              this._handleIncomingMessage(update.message);
+            }
+            if (update.callback_query) {
+              const cb = update.callback_query;
+              this._callback({
+                data: cb.data,
+                messageId: cb.message?.message_id ?? 0,
+                chatId: cb.message?.chat.id ?? cb.from.id
+              });
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end('{}');
+          } catch {
+            res.writeHead(400);
+            res.end();
+          }
+        });
+      } else {
+        res.writeHead(404);
+        res.end();
+      }
+    });
+
+    return new Promise((resolve) => {
+      this._webhookServer?.listen(port, async () => {
+        await this._apiCall('setWebhook', {
+          url: `http://localhost:${port}/${this._webhookSecret}`
+        });
+        this._log({ timestamp: new Date(), type: 'info', message: `Webhook enabled on port ${port}`, direction: 'system' });
+        resolve();
+      });
+    });
+  }
+
+  stopWebhook(): void {
+    if (this._webhookServer) {
+      this._webhookServer.close();
+      this._webhookServer = undefined;
+      this._apiCall('deleteWebhook', {});
+      this._log({ timestamp: new Date(), type: 'info', message: 'Webhook disabled', direction: 'system' });
+    }
+  }
+
+  // ─── Offline Queue ─────────────────────────────────────────
+  private _queueOffline(text: string, chatId?: string, silent = false): void {
+    this._offlineQueue.push({ text, chatId, silent, timestamp: Date.now() });
+    this._log({ timestamp: new Date(), type: 'info', message: `Queued offline (${this._offlineQueue.length} pending)`, direction: 'system' });
+  }
+
+  private async _flushOfflineQueue(): Promise<void> {
+    const queue = [...this._offlineQueue];
+    this._offlineQueue = [];
+    for (const msg of queue) {
+      await this.sendMessage(msg.text, msg.chatId, msg.silent);
+    }
+    if (queue.length > 0) {
+      this._log({ timestamp: new Date(), type: 'info', message: `Flushed ${queue.length} offline messages`, direction: 'system' });
+    }
+  }
+
+  getOfflineQueueLength(): number {
+    return this._offlineQueue.length;
+  }
+
+  // ─── Inline Keyboard ────────────────────────────────────────
+  async sendMessageWithKeyboard(text: string, keyboard: InlineKeyboardMarkup, chatId?: string): Promise<boolean> {
+    if (!this._botToken) { return false; }
+    const cfg = vscode.workspace.getConfiguration('telegramBridge');
+    const target = chatId ?? this._chatId;
+    if (!target) { return false; }
+
+    const ok = await this._apiCall('sendMessage', {
+      chat_id: target,
+      text,
+      parse_mode: cfg.get<string>('parseMode', 'Markdown'),
+      reply_markup: keyboard,
+      disable_notification: cfg.get<boolean>('silentNotifications', false)
+    });
+
+    this._log({ timestamp: new Date(), type: ok ? 'success' : 'error', message: text.substring(0, 80), direction: 'outbound' });
+    return !!ok;
+  }
+
+  async answerCallback(callbackId: string, text?: string, showAlert = false): Promise<boolean> {
+    if (!this._botToken) { return false; }
+    return !!(await this._apiCall('answerCallbackQuery', {
+      callback_query_id: callbackId,
+      text: text ?? '',
+      show_alert: showAlert
+    }));
+  }
+
+  // ─── Telegram Commands ──────────────────────────────────────
+  registerCommand(name: string, description: string, callback: (args?: string) => Promise<void>): void {
+    this._commands.push({ name, description, callback });
+  }
+
+  private _handleIncomingMessage(message: TelegramMessage): void {
+    this._incoming(message);
+    this._log({
+      timestamp: new Date(),
+      type: 'info',
+      message: `📨 ${message.from?.first_name ?? 'Unknown'}: ${message.text?.substring(0, 60) ?? '[media]'}`,
+      direction: 'inbound'
+    });
+
+    if (message.text?.startsWith('/')) {
+      const parts = message.text.slice(1).split(' ');
+      const cmdName = parts[0].toLowerCase();
+      const args = parts.slice(1).join(' ');
+
+      const cmd = this._commands.find(c => c.name.toLowerCase() === cmdName);
+      if (cmd) {
+        cmd.callback(args).then(() => {
+          this._apiCall('sendMessage', {
+            chat_id: message.chat.id,
+            text: `✅ Command /${cmdName} executed`,
+            parse_mode: 'Markdown'
+          });
+        }).catch(err => {
+          this._apiCall('sendMessage', {
+            chat_id: message.chat.id,
+            text: `❌ Error: ${err.message}`,
+            parse_mode: 'Markdown'
+          });
+        });
+      } else if (cmdName === 'help') {
+        const helpText = this._commands.map(c => `/${c.name} - ${c.description}`).join('\n');
+        this._apiCall('sendMessage', {
+          chat_id: message.chat.id,
+          text: `*Available Commands:*\n\n${helpText}`,
+          parse_mode: 'Markdown'
+        });
+      }
+    }
+  }
+
+  getCommands(): TelegramCommand[] {
+    return [...this._commands];
   }
 
   // ─── Polling ──────────────────────────────────────────────
@@ -140,10 +338,16 @@ export class TelegramService {
   }
 
   async sendMessage(text: string, chatId?: string, silent = false): Promise<boolean> {
-    if (!this._botToken) { return false; }
+    if (!this._botToken || !this._connected) {
+      this._queueOffline(text, chatId, silent);
+      return false;
+    }
     const cfg = vscode.workspace.getConfiguration('telegramBridge');
     const target = chatId ?? this._chatId;
-    if (!target) { return false; }
+    if (!target) {
+      this._queueOffline(text, chatId, silent);
+      return false;
+    }
 
     const ok = await this._apiCall('sendMessage', {
       chat_id: target,

@@ -13,6 +13,7 @@ import { SchedulerManager, SchedulerProvider } from './schedulerManager';
 import { InboxManager, InboxProvider } from './inboxManager';
 import { WorkspaceConfigManager } from './workspaceConfig';
 import { sendSystemInfo } from './systemInfo';
+import { TerminalManager } from './terminalManager';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   console.log('[TelegramBridge] Activating v2.0.0');
@@ -27,6 +28,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const inboxManager       = new InboxManager(telegramService);
   const notificationMgr    = new NotificationManager(telegramService, context);
   const wsCfgManager       = new WorkspaceConfigManager();
+  const terminalManager   = new TerminalManager(telegramService, context);
 
   // ─── Tree view providers ────────────────────────────────────
   const profilesProvider   = new ProfilesProvider(profileManager, telegramService, context);
@@ -77,6 +79,40 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   // Start scheduler, notifications, git watcher
   schedulerManager.start();
   notificationMgr.register();
+  terminalManager.registerCommands();
+
+  // ─── Register Telegram Commands ────────────────────────────────
+  telegramService.registerCommand('status', 'Send current git status', async () => {
+    await notificationMgr.getGitIntegration().sendGitStatus();
+  });
+
+  telegramService.registerCommand('info', 'Send system info', async () => {
+    const { sendSystemInfo } = await import('./systemInfo');
+    await sendSystemInfo(telegramService);
+  });
+
+  telegramService.registerCommand('errors', 'Send workspace errors', async () => {
+    await notificationMgr.getDiagnostics().sendReport();
+  });
+
+  telegramService.registerCommand('help', 'Show available commands', async () => {});
+
+  telegramService.onCallbackQuery(async (data) => {
+    const { data: callbackData, messageId, chatId } = data;
+    await telegramService.answerCallback(messageId.toString(), 'Command received!');
+    
+    if (callbackData === 'btn_build') {
+      const tasks = await vscode.tasks.fetchTasks();
+      const buildTask = tasks.find(t => t.name === 'build');
+      if (buildTask) await vscode.tasks.executeTask(buildTask);
+    } else if (callbackData === 'btn_test') {
+      const tasks = await vscode.tasks.fetchTasks();
+      const testTask = tasks.find(t => t.name === 'test');
+      if (testTask) await vscode.tasks.executeTask(testTask);
+    } else if (callbackData === 'btn_status') {
+      await notificationMgr.getGitIntegration().sendGitStatus();
+    }
+  });
 
   // ─── COMMAND REGISTRATIONS ──────────────────────────────────
 
@@ -424,6 +460,70 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // Workspace config
   reg(context, 'telegramBridge.workspaceConfig', () => wsCfgManager.openOrCreate());
+
+  // Toggle webhook
+  reg(context, 'telegramBridge.toggleWebhook', async () => {
+    if (!telegramService.isConnected()) { promptConnect(); return; }
+    const cfg = vscode.workspace.getConfiguration('telegramBridge');
+    const enabled = cfg.get<boolean>('enableWebhook', false);
+    await cfg.update('enableWebhook', !enabled, vscode.ConfigurationTarget.Global);
+    if (!enabled) {
+      await telegramService.startWebhook();
+      vscode.window.showInformationMessage('🔗 Webhook enabled.');
+    } else {
+      telegramService.stopWebhook();
+      vscode.window.showInformationMessage('🔗 Webhook disabled.');
+    }
+  });
+
+  // Send with inline keyboard
+  reg(context, 'telegramBridge.sendWithKeyboard', async () => {
+    if (!telegramService.isConnected()) { promptConnect(); return; }
+    const text = await vscode.window.showInputBox({
+      prompt: 'Message with inline buttons',
+      placeHolder: 'Type your message…',
+      ignoreFocusOut: true
+    });
+    if (!text) { return; }
+
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '📊 Build', callback_data: 'btn_build' }, { text: '🧪 Test', callback_data: 'btn_test' }],
+        [{ text: '📋 Status', callback_data: 'btn_status' }]
+      ]
+    };
+
+    await telegramService.sendMessageWithKeyboard(text, keyboard);
+    vscode.window.showInformationMessage('📨 Message with buttons sent!');
+  });
+
+  // Open Telegram Terminal
+  reg(context, 'telegramBridge.openTerminal', async () => {
+    if (!telegramService.isConnected()) { promptConnect(); return; }
+    const command = await vscode.window.showInputBox({
+      prompt: 'Enter command to run',
+      placeHolder: 'e.g., npm install, git status, ls -la',
+      ignoreFocusOut: true
+    });
+    if (!command) { return; }
+
+    await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: 'Executing…' }, async () => {
+      const { TerminalManager } = await import('./terminalManager');
+      const tm = new TerminalManager(telegramService, context);
+      await tm.registerCommands();
+    });
+  });
+
+  // List Terminals
+  reg(context, 'telegramBridge.listTerminals', async () => {
+    const terms = vscode.window.terminals;
+    if (terms.length === 0) {
+      vscode.window.showInformationMessage('No active terminals');
+      return;
+    }
+    const list = terms.map(t => t.name).join('\n');
+    vscode.window.showInformationMessage(`Active Terminals:\n${list}`);
+  });
 
   // Disconnect
   reg(context, 'telegramBridge.disconnect', async () => {

@@ -9,7 +9,7 @@
 # ============================================================
 set -euo pipefail
 
-TOKEN="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"
+TOKEN="$TOKEN"
 REPO="telegram-bridge-vscode"
 API="https://api.github.com"
 

@@ -6,6 +6,7 @@ import { DiagnosticsReporter } from './diagnosticsReporter';
 export class NotificationManager {
   private _gitIntegration: GitIntegration;
   private _diagnostics: DiagnosticsReporter;
+  private _fileWatcher: vscode.FileSystemWatcher | undefined;
 
   constructor(
     private _service: TelegramService,
@@ -79,6 +80,9 @@ export class NotificationManager {
       })
     );
 
+    // ── File change watcher ──────────────────────────────────
+    this._setupFileWatcher(ctx);
+
     // ── Git integration ──────────────────────────────────────
     this._gitIntegration.register(ctx);
 
@@ -104,4 +108,42 @@ export class NotificationManager {
 
   getGitIntegration(): GitIntegration { return this._gitIntegration; }
   getDiagnostics(): DiagnosticsReporter { return this._diagnostics; }
+
+  private _setupFileWatcher(ctx: vscode.ExtensionContext): void {
+    const cfg = vscode.workspace.getConfiguration('telegramBridge');
+    const patterns = cfg.get<string[]>('fileWatcherPatterns', []);
+    
+    if (patterns.length === 0) { return; }
+
+    try {
+      this._fileWatcher = vscode.workspace.createFileSystemWatcher(`**/{${patterns.join(',')}}`);
+      
+      ctx.subscriptions.push(this._fileWatcher);
+      
+      const notifyOnChange = async (uri: vscode.Uri) => {
+        if (!this._service.isConnected()) { return; }
+        const cfg = vscode.workspace.getConfiguration('telegramBridge');
+        if (!cfg.get<boolean>('notifyOnFileChange', false)) { return; }
+        
+        const file = uri.fsPath.split('/').pop() ?? uri.fsPath;
+        const ws = this._service.getWorkspaceName();
+        await this._service.sendMessage(
+          `📝 *File Changed*\n\n📁 \`${ws}\`\n📄 \`${file}\`\n🕐 ${new Date().toLocaleTimeString()}`,
+          undefined, true
+        );
+      };
+
+      this._fileWatcher.onDidChange(notifyOnChange);
+      this._fileWatcher.onDidCreate(notifyOnChange);
+      this._fileWatcher.onDidDelete(notifyOnChange);
+      
+      this._log({ timestamp: new Date(), type: 'info', message: `File watcher active for: ${patterns.join(', ')}`, direction: 'system' });
+    } catch (err) {
+      this._log({ timestamp: new Date(), type: 'error', message: `File watcher error: ${err}`, direction: 'system' });
+    }
+  }
+
+  private _log(entry: { timestamp: Date; type: string; message: string; direction: string }): void {
+    this._service.onLog(() => {});
+  }
 }

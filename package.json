@@ -41,7 +41,11 @@
       { "command": "telegramBridge.refreshInbox",         "title": "Refresh Inbox",                             "icon": "$(refresh)" },
       { "command": "telegramBridge.deleteScheduled",      "title": "Delete Scheduled Message",                  "icon": "$(trash)" },
       { "command": "telegramBridge.deleteTemplate",       "title": "Delete Template",                           "icon": "$(trash)" },
-      { "command": "telegramBridge.useTemplate",          "title": "Send This Template",                        "icon": "$(send)" }
+      { "command": "telegramBridge.useTemplate",          "title": "Send This Template",                        "icon": "$(send)" },
+      { "command": "telegramBridge.toggleWebhook",       "title": "Telegram Bridge: Toggle Webhook",            "icon": "$(broadcast)" },
+      { "command": "telegramBridge.sendWithKeyboard",    "title": "Telegram Bridge: Send with Keyboard",       "icon": "$(keyboard)" },
+      { "command": "telegramBridge.openTerminal",       "title": "Telegram Bridge: Open Telegram Terminal",  "icon": "$(terminal)" },
+      { "command": "telegramBridge.listTerminals",     "title": "Telegram Bridge: List Terminals",          "icon": "$(list-flat)" }
     ],
     "menus": {
       "editor/context": [
@@ -88,10 +92,14 @@
         "telegramBridge.notifyOnDebugStart":      { "type": "boolean", "default": false },
         "telegramBridge.notifyOnDebugStop":       { "type": "boolean", "default": false },
         "telegramBridge.notifyOnFileSave":        { "type": "boolean", "default": false },
+        "telegramBridge.notifyOnFileChange":      { "type": "boolean", "default": false },
+        "telegramBridge.fileWatcherPatterns":     { "type": "array", "default": [], "items": { "type": "string" }, "description": "File patterns to watch for changes (e.g., *.ts, src/**)" },
         "telegramBridge.notifyOnGitCommit":       { "type": "boolean", "default": false },
         "telegramBridge.notifyOnDiagnosticError": { "type": "boolean", "default": false },
         "telegramBridge.enablePolling":           { "type": "boolean", "default": false },
         "telegramBridge.pollingInterval":         { "type": "number",  "default": 5, "minimum": 3 },
+        "telegramBridge.enableWebhook":           { "type": "boolean", "default": false },
+        "telegramBridge.webhookPort":             { "type": "number",  "default": 3456, "minimum": 1024, "maximum": 65535 },
         "telegramBridge.showIncomingInEditor":    { "type": "boolean", "default": true },
         "telegramBridge.parseMode":               { "type": "string",  "default": "Markdown", "enum": ["Markdown","HTML","MarkdownV2"] },
         "telegramBridge.maxCodeLength":           { "type": "number",  "default": 3000 },
@@ -152,6 +160,6 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {},
-  "repository": { "type": "git", "url": "https://github.com/unn-Known1/telegram-bridge-vscode" },
+  "repository": { "type": "git", "url": "https://github.com/your-username/telegram-bridge-vscode" },
   "license": "MIT"
 }
