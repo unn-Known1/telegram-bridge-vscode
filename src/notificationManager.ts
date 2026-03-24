@@ -102,12 +102,23 @@ export class NotificationManager {
             this._service.stopPolling();
           }
         }
+        if (e.affectsConfiguration('telegramBridge.fileWatcherPatterns')) {
+          this._disposeFileWatcher();
+          this._setupFileWatcher(ctx);
+        }
       })
     );
   }
 
   getGitIntegration(): GitIntegration { return this._gitIntegration; }
   getDiagnostics(): DiagnosticsReporter { return this._diagnostics; }
+
+  private _disposeFileWatcher(): void {
+    if (this._fileWatcher) {
+      this._fileWatcher.dispose();
+      this._fileWatcher = undefined;
+    }
+  }
 
   private _setupFileWatcher(ctx: vscode.ExtensionContext): void {
     const cfg = vscode.workspace.getConfiguration('telegramBridge');
@@ -136,14 +147,8 @@ export class NotificationManager {
       this._fileWatcher.onDidChange(notifyOnChange);
       this._fileWatcher.onDidCreate(notifyOnChange);
       this._fileWatcher.onDidDelete(notifyOnChange);
-      
-      this._log({ timestamp: new Date(), type: 'info', message: `File watcher active for: ${patterns.join(', ')}`, direction: 'system' });
-    } catch (err) {
-      this._log({ timestamp: new Date(), type: 'error', message: `File watcher error: ${err}`, direction: 'system' });
+    } catch {
+      // File watcher setup failed - patterns may be invalid
     }
-  }
-
-  private _log(entry: { timestamp: Date; type: string; message: string; direction: string }): void {
-    this._service.onLog(() => {});
   }
 }

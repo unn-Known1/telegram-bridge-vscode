@@ -77,7 +77,10 @@ export class ConfigWebview {
           await cfg.update('notifyOnFileSave',        msg.notifyOnFileSave,        vscode.ConfigurationTarget.Global);
           await cfg.update('notifyOnGitCommit',       msg.notifyOnGitCommit,       vscode.ConfigurationTarget.Global);
           await cfg.update('notifyOnDiagnosticError', msg.notifyOnDiagnosticError, vscode.ConfigurationTarget.Global);
+          await cfg.update('notifyOnFileChange',      msg.notifyOnFileChange,      vscode.ConfigurationTarget.Global);
           await cfg.update('enablePolling',           msg.enablePolling,           vscode.ConfigurationTarget.Global);
+          await cfg.update('enableWebhook',            msg.enableWebhook,           vscode.ConfigurationTarget.Global);
+          await cfg.update('webhookPort',             msg.webhookPort,             vscode.ConfigurationTarget.Global);
           await cfg.update('pollingInterval',         msg.pollingInterval,         vscode.ConfigurationTarget.Global);
           await cfg.update('silentNotifications',     msg.silentNotifications,     vscode.ConfigurationTarget.Global);
           await cfg.update('parseMode',               msg.parseMode,               vscode.ConfigurationTarget.Global);
@@ -346,6 +349,7 @@ a.link:hover{text-decoration:underline}
       ${toggle('notifyDebugStart',   '🐛 Debug Start',     s.notifyOnDebugStart as boolean)}
       ${toggle('notifyDebugStop',    '🏁 Debug Stop',      s.notifyOnDebugStop as boolean)}
       ${toggle('notifyFileSave',     '💾 File Save',       s.notifyOnFileSave as boolean)}
+      ${toggle('notifyFileChange',   '📝 File Changed',    s.notifyOnFileChange as boolean)}
       ${toggle('notifyGitCommit',    '🔀 Git Commit',      s.notifyOnGitCommit as boolean)}
       ${toggle('notifyDiagnostic',   '🔴 New Errors',      s.notifyOnDiagnosticError as boolean)}
       ${toggle('silentNotifs',       '🔕 Silent Mode',     s.silentNotifications as boolean)}
@@ -360,6 +364,17 @@ a.link:hover{text-decoration:underline}
     <div class="field" style="margin-top:12px">
       <label>Polling interval (seconds)</label>
       <input type="number" id="pollingInterval" value="${s.pollingInterval}" min="3" max="60" style="width:120px" />
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">🔗 Webhook</div>
+    <div class="toggles" style="grid-template-columns:1fr">
+      ${toggle('enableWebhook', '🔗 Enable Webhook (alternative to polling)', s.enableWebhook as boolean)}
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label>Webhook port</label>
+      <input type="number" id="webhookPort" value="${s.webhookPort}" min="1024" max="65535" style="width:120px" />
     </div>
   </div>
 
@@ -518,7 +533,6 @@ a.link:hover{text-decoration:underline}
 
 <script>
 const vscode = acquireVsCodeApi();
-const WS = '${(vscode as unknown as Record<string,unknown>)._service ?? s.messagePrefix}';
 
 function switchTab(id) {
   document.querySelectorAll('.tab,.tab-pane').forEach(el => el.classList.remove('active'));
@@ -572,6 +586,8 @@ function save() {
     enablePolling:           document.getElementById('enablePolling').checked,
     pollingInterval:         parseInt(document.getElementById('pollingInterval').value)||5,
     silentNotifications:     document.getElementById('silentNotifs').checked,
+    enableWebhook:            document.getElementById('enableWebhook').checked,
+    webhookPort:             parseInt(document.getElementById('webhookPort').value)||3456,
     parseMode: document.getElementById('parseMode')?.value||'Markdown',
     maxCodeLength: parseInt(document.getElementById('maxCodeLength')?.value)||3000,
     additionalChats: document.getElementById('additionalChats')?.value||'',
@@ -585,6 +601,7 @@ function saveAdvanced() {
     messagePrefix: document.getElementById('messagePrefix').value,
     notifyOnBuildSuccess:    document.getElementById('notifyBuildSuccess').checked,
     notifyOnBuildFailure:    document.getElementById('notifyBuildFailure').checked,
+    notifyOnFileChange:      document.getElementById('notifyFileChange').checked,
     notifyOnDebugStart:      document.getElementById('notifyDebugStart').checked,
     notifyOnDebugStop:       document.getElementById('notifyDebugStop').checked,
     notifyOnFileSave:        document.getElementById('notifyFileSave').checked,
@@ -593,12 +610,13 @@ function saveAdvanced() {
     enablePolling:           document.getElementById('enablePolling').checked,
     pollingInterval:         parseInt(document.getElementById('pollingInterval').value)||5,
     silentNotifications:     document.getElementById('silentNotifs').checked,
-    parseMode: document.getElementById('parseMode').value,
-    maxCodeLength: parseInt(document.getElementById('maxCodeLength').value)||3000,
-    additionalChats: document.getElementById('additionalChats').value,
-    autoSendOnError: document.getElementById('autoSendOnError').checked
+    enableWebhook:           document.getElementById('enableWebhook')?.checked||false,
+    webhookPort:             parseInt(document.getElementById('webhookPort')?.value)||3456,
+    parseMode:               document.getElementById('parseMode')?.value||'Markdown',
+    maxCodeLength:           parseInt(document.getElementById('maxCodeLength')?.value)||3000,
+    additionalChats:         document.getElementById('additionalChats')?.value||'',
+    autoSendOnError:         document.getElementById('autoSendOnError')?.checked||false
   });
-  showAlert('alert4','Settings saved!','success');
 }
 function test() { vscode.postMessage({command:'test'}); showAlert('alert1','Sending test message…','info'); }
 function disconnect() { vscode.postMessage({command:'disconnect'}); }

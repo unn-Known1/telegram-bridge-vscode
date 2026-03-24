@@ -444,7 +444,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // Delete scheduled message
   reg(context, 'telegramBridge.deleteScheduled', async (item: unknown) => {
-    const id = (item as any)?.scheduled?.id as string | undefined;
+    const typedItem = item as { scheduled?: { id?: string } } | undefined;
+    const id = typedItem?.scheduled?.id;
     if (!id) { return; }
     await schedulerManager.delete(id);
     schedulerProvider.refresh();
@@ -452,7 +453,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // Delete template
   reg(context, 'telegramBridge.deleteTemplate', async (item: unknown) => {
-    const id = (item as any)?.template?.id as string | undefined;
+    const typedItem = item as { template?: { id?: string } } | undefined;
+    const id = typedItem?.template?.id;
     if (!id) { return; }
     await templateManager.deleteTemplate(id);
     templatesProvider.refresh();

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { execSync } from 'child_process';
 import { TelegramService } from './telegramService';
 
 export interface MessageTemplate {
@@ -121,7 +122,6 @@ export class TemplateManager {
 
   private _getGitBranch(): string {
     try {
-      const { execSync } = require('child_process');
       const folder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '';
       return execSync('git rev-parse --abbrev-ref HEAD', { cwd: folder, encoding: 'utf8', stdio: ['ignore','pipe','ignore'] }).trim();
     } catch { return 'unknown'; }

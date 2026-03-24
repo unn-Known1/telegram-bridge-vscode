@@ -310,13 +310,13 @@ export class TelegramService {
 
   private async _poll(): Promise<void> {
     if (!this._connected) { return; }
-    const result = await this._apiCall<TelegramMessage[]>('getUpdates', {
+    const result = await this._apiCall<unknown[]>('getUpdates', {
       offset: this._lastUpdateId + 1,
       timeout: 0,
       limit: 10
     });
     if (!result) { return; }
-    const updates = (result as unknown) as Array<{ update_id: number; message?: TelegramMessage }>;
+    const updates = result as Array<{ update_id: number; message?: TelegramMessage }>;
     for (const upd of updates) {
       this._lastUpdateId = upd.update_id;
       if (upd.message) {
