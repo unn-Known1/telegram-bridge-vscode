@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -39,13 +40,13 @@ jobs:
         id: changelog
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
-          NOTES=$(awk "/## \[$VERSION\]/,/## \[/" CHANGELOG.md | head -n -2)
+          NOTES=$(awk "/## \[$VERSION\]/,/## \[" CHANGELOG.md | head -n -2)
           echo "NOTES<<EOF" >> $GITHUB_OUTPUT
           echo "$NOTES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: "✈️ Telegram Bridge v${{ steps.version.outputs.VERSION }}"
           body: ${{ steps.changelog.outputs.NOTES }}
