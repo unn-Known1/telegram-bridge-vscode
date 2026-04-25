@@ -298,6 +298,25 @@ Send code snippets, error reports, and status updates to group chats. Multiple p
 ### Offline Queue
 Queue messages when offline. They'll send automatically when connectivity is restored.
 
+### Notification-Only Mode (Security-First)
+Enable secure CI/CD monitoring without code execution capabilities:
+
+- **No terminal commands** from Telegram - only receive notifications
+- **Disable incoming polling** - no incoming message processing
+- **Build/test/debug alerts** - get instant notifications on events
+- **Perfect for teams** - monitoring without security risks
+
+```json
+// Minimal notification-only config
+{
+  "telegramBridge.enablePolling": false,
+  "telegramBridge.notifyOnBuildSuccess": true,
+  "telegramBridge.notifyOnBuildFailure": true
+}
+```
+
+See [CONFIG.md](./docs/CONFIG.md#notification-only-mode) for complete documentation.
+
 ---
 
 ## 🛠️ Development
@@ -332,6 +351,7 @@ Upcoming features:
 - [ ] Recurring scheduled messages (cron)
 - [ ] GitHub/GitLab CI webhook relay
 - [ ] Message search in inbox
+- [x] Notification-only mode documentation
 
 ---
 

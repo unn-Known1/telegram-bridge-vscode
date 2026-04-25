@@ -298,6 +298,8 @@ Developers who only want build/test/debug alerts without the ability to execute 
 | `notifyOnDebugStart/Stop` | `true` | Debug session notifications |
 | `notifyOnGitCommit` | `true` | Git commit notifications |
 
+> **Note:** Currently, "notification-only mode" is achieved by disabling polling (`enablePolling: false`) and enabling only the notification settings you need. Future versions may include a dedicated `notificationOnlyMode` toggle setting.
+
 ### Profile Presets
 
 You can create preset profiles for different use cases:
