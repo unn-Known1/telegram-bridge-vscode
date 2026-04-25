@@ -242,6 +242,107 @@ Complete reference for all configuration options.
 
 ---
 
+## Notification-Only Mode
+
+A secure configuration for CI/CD monitoring without code execution capabilities.
+
+### Use Case
+
+Developers who only want build/test/debug alerts without the ability to execute code from Telegram. This is ideal for:
+
+- CI/CD pipeline monitoring
+- Team notification channels
+- Read-only status updates
+- Security-conscious environments
+
+### Notification-Only Configuration
+
+```json
+{
+  "telegramBridge.botToken": "your-bot-token",
+  "telegramBridge.chatId": "your-chat-id",
+
+  "telegramBridge.activeProfile": "notifications-only",
+  "telegramBridge.profiles": {
+    "notifications-only": {
+      "label": "Notifications Only",
+      "token": "your-bot-token",
+      "chatId": "your-chat-id"
+    }
+  },
+
+  "telegramBridge.notifyOnBuildSuccess": true,
+  "telegramBridge.notifyOnBuildFailure": true,
+  "telegramBridge.notifyOnDebugStart": true,
+  "telegramBridge.notifyOnDebugStop": true,
+  "telegramBridge.notifyOnGitCommit": true,
+  "telegramBridge.notifyOnDiagnosticError": true,
+
+  "telegramBridge.enablePolling": false,
+  "telegramBridge.showIncomingInEditor": false,
+
+  "telegramBridge.parseMode": "Markdown",
+  "telegramBridge.silentNotifications": false,
+  "telegramBridge.messagePrefix": "CI/CD"
+}
+```
+
+### Key Settings for Notification-Only
+
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| `enablePolling` | `false` | Disable incoming message polling |
+| `showIncomingInEditor` | `false` | Don't show Telegram messages in editor |
+| `notifyOnBuildSuccess` | `true` | Send build success notifications |
+| `notifyOnBuildFailure` | `true` | Send build failure alerts |
+| `notifyOnDebugStart/Stop` | `true` | Debug session notifications |
+| `notifyOnGitCommit` | `true` | Git commit notifications |
+
+### Profile Presets
+
+You can create preset profiles for different use cases:
+
+```json
+{
+  "telegramBridge.profiles": {
+    "build-monitor": {
+      "label": "Build Monitor",
+      "notifyOnBuildSuccess": true,
+      "notifyOnBuildFailure": true,
+      "notifyOnGitCommit": true,
+      "enablePolling": false
+    },
+    "debug-only": {
+      "label": "Debug Only",
+      "notifyOnDebugStart": true,
+      "notifyOnDebugStop": true,
+      "enablePolling": false
+    },
+    "full-bridge": {
+      "label": "Full Bridge",
+      "enablePolling": true,
+      "showIncomingInEditor": true
+    }
+  }
+}
+```
+
+### Minimal Notification Setup
+
+For the simplest notification-only setup:
+
+```json
+{
+  "telegramBridge.botToken": "YOUR_BOT_TOKEN",
+  "telegramBridge.chatId": "YOUR_CHAT_ID",
+  "telegramBridge.enablePolling": false,
+  "telegramBridge.notifyOnBuildSuccess": true,
+  "telegramBridge.notifyOnBuildFailure": true
+}
+```
+
+---
+
 ## Environment Variables
 
 Not currently supported. All configuration is stored in VS Code's settings.
