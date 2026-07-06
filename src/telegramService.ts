@@ -57,6 +57,8 @@ interface TelegramCommand {
   callback: (args?: string) => Promise<void>;
 }
 
+export interface LiveShareMessage { chatId: string; senderName: string; text: string; timestamp: number; }
+
 export class TelegramService {
   private _botToken = '';
   private _chatId = '';

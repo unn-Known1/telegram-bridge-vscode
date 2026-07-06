@@ -96,6 +96,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   });
 
   telegramService.registerCommand('help', 'Show available commands', async () => {});
+telegramService.registerLiveShareHandler((msg) => {
+  const name = msg.senderName || 'Live Share user';
+  const text = `🟢 Live Share [${name}]: ${msg.text}`;
+  telegramService.sendMessage(text).catch(() => {});
+});
 
   telegramService.onCallbackQuery(async (data) => {
     const { data: callbackData, messageId, chatId } = data;
