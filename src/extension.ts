@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 
 import { TelegramService } from './telegramService';
 import { StatusBarManager } from './statusBarManager';
@@ -566,6 +567,31 @@ telegramService.registerLiveShareHandler((msg: { chatId: string; senderName: str
   reg(context, 'telegramBridge.disconnect', async () => {
     await telegramService.disconnect();
     vscode.window.showInformationMessage('Telegram Bridge disconnected.');
+  });
+
+  // Watch log files now
+  notificationMgr.getLogFileWatcher().start(context);
+
+  // Send log file contents
+  reg(context, 'telegramBridge.sendLogFile', async () => {
+    if (!telegramService.isConnected()) { promptConnect(); return; }
+    const folder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (!folder) { vscode.window.showWarningMessage('No workspace folder open.'); return; }
+    const uri = await vscode.window.showOpenDialog({
+      canSelectFiles: true,
+      canSelectMany: false,
+      openLabel: 'Select log file',
+      filters: { 'Log Files': ['log', 'txt', 'out'], 'All Files': ['*'] },
+      defaultUri: vscode.Uri.file(folder)
+    });
+    if (!uri || uri.length === 0) { return; }
+    const content = fs.readFileSync(uri[0].fsPath, 'utf8');
+    const lines = content.split('\n').slice(-100).join('\n');
+    const fileName = uri[0].fsPath.split('/').pop() ?? 'log';
+    const ok = await telegramService.sendMessage(
+      `📄 *Log File: \`${fileName}\`*\n\n\`\`\`\n${lines.substring(0, 3500)}\n\`\`\``
+    );
+    if (ok) { vscode.window.showInformationMessage(`📨 ${fileName} sent!`); }
   });
 
   // ─── Status bar ──────────────────────────────────────────────

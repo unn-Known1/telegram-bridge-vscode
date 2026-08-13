@@ -2,7 +2,7 @@
   "name": "telegram-bridge",
   "displayName": "Telegram Bridge - VS Code Telegram Integration",
   "description": "Send messages, code, files from VS Code to Telegram. Get build notifications, debug alerts, terminal control, and execute commands directly from Telegram. The ultimate developer productivity tool.",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "publisher": "telegram-bridge",
   "icon": "media/icon.png",
   "galleryBanner": { "color": "#0d1b2a", "theme": "dark" },
@@ -47,7 +47,8 @@
       { "command": "telegramBridge.openTerminal",       "title": "Telegram Bridge: Open Telegram Terminal",  "icon": "$(terminal)" },
       { "command": "telegramBridge.listTerminals",     "title": "Telegram Bridge: List Terminals",          "icon": "$(list-flat)" },
       { "command": "telegramBridge.deleteProfile",     "title": "Telegram Bridge: Delete Profile",            "icon": "$(trash)" },
-      { "command": "telegramBridge.clearInbox",        "title": "Telegram Bridge: Clear Inbox",               "icon": "$(trash)" }
+      { "command": "telegramBridge.clearInbox",        "title": "Telegram Bridge: Clear Inbox",               "icon": "$(trash)" },
+      { "command": "telegramBridge.sendLogFile",       "title": "Telegram Bridge: Send Log File",             "icon": "$(file-text)" }
     ],
     "menus": {
       "editor/context": [
@@ -115,7 +116,11 @@
         "telegramBridge.logRetentionDays":        { "type": "number",  "default": 7 },
         "telegramBridge.codeSnippetLanguage":     { "type": "boolean", "default": true },
         "telegramBridge.autoSendOnError":         { "type": "boolean", "default": false },
-        "telegramBridge.showStatusBar":           { "type": "boolean", "default": true, "description": "Show the status bar indicator" }
+        "telegramBridge.showStatusBar":           { "type": "boolean", "default": true, "description": "Show the status bar indicator" },
+        "telegramBridge.branchRouting":           { "type": "object", "default": {}, "description": "Route notifications by git branch (key=branch name, value=chatId). Use '*' for wildcard default.", "scope": "application" },
+        "telegramBridge.logWatchFiles":           { "type": "array", "default": [], "items": { "type": "string" }, "description": "Log files to watch for pattern matches (relative or absolute paths)", "scope": "application" },
+        "telegramBridge.logWatchPatterns":        { "type": "array", "default": [{ "pattern": "(?i)error|fail|exception|crash" }, { "pattern": "(?i)test.*(failed|error|failure)", "description": "Test failures" }, { "pattern": "(?i)warn", "description": "Warnings" }], "items": { "type": "object" }, "description": "Regex patterns to match in watched log files", "scope": "application" },
+        "telegramBridge.notifyOnLogPattern":      { "type": "boolean", "default": false, "description": "Send Telegram notification when log file patterns match" }
       }
     },
     "viewsContainers": {

@@ -53,6 +53,8 @@ export class ConfigWebview {
         maxCodeLength:          cfg.get<number>('maxCodeLength', 3000),
         additionalChats:        cfg.get<string[]>('additionalChats', []).join('\n'),
         autoSendOnError:        cfg.get<boolean>('autoSendOnError', false),
+        logWatchFiles:          (cfg.get<string[]>('logWatchFiles', []) as string[]).join('\n'),
+        notifyOnLogPattern:     cfg.get<boolean>('notifyOnLogPattern', false),
         connected:              telegramService.isConnected(),
         botInfo:                telegramService.getBotInfo(),
         templates:              templateManager.getAllTemplates(),
@@ -86,9 +88,30 @@ export class ConfigWebview {
           await cfg.update('parseMode',               msg.parseMode,               vscode.ConfigurationTarget.Global);
           await cfg.update('maxCodeLength',           msg.maxCodeLength,           vscode.ConfigurationTarget.Global);
           await cfg.update('autoSendOnError',         msg.autoSendOnError,         vscode.ConfigurationTarget.Global);
+          await cfg.update('notifyOnLogPattern',      msg.notifyOnLogPattern ?? false, vscode.ConfigurationTarget.Global);
 
-          const extraChats = (msg.additionalChats as string).split('\n').map((s: string) => s.trim()).filter(Boolean);
-          await cfg.update('additionalChats', extraChats, vscode.ConfigurationTarget.Global);
+           const extraChats = (msg.additionalChats as string).split('\n').map((s: string) => s.trim()).filter(Boolean);
+           await cfg.update('additionalChats', extraChats, vscode.ConfigurationTarget.Global);
+
+           // Save branch routing mapping
+           const branchRoutingLines = String(msg.branchRouting ?? '') || '';
+           const branchRoutingMap: Record<string, string> = {};
+           for (const line of branchRoutingLines.split('\n')) {
+             const parts = line.trim().split(/\s+/);
+             if (parts.length >= 2) {
+               branchRoutingMap[parts[0]] = parts.slice(1).join(' ');
+             }
+           }
+           if (Object.keys(branchRoutingMap).length > 0) {
+             await cfg.update('branchRouting', branchRoutingMap, vscode.ConfigurationTarget.Global);
+           }
+
+           // Save log watch files
+           const logFiles = String(msg.logWatchFiles ?? '')
+             .split('\n')
+            .map((s: string) => s.trim())
+            .filter(Boolean);
+          await cfg.update('logWatchFiles', logFiles, vscode.ConfigurationTarget.Global);
 
           if (msg.botToken && msg.chatId) {
             panel.webview.postMessage({ command: 'connecting' });
@@ -580,6 +603,26 @@ a.link:hover{color:#60A5FA}
     </div>
   </div>
 
+  <div class="section">
+    <div class="sec-title"><span class="sec-icon">🌿</span>Branch-Aware Chat Routing</div>
+    <div class="field">
+      <label>Branch → Chat Mapping <span class="hint-label">one rule per line: branchName chatId</span></label>
+      <textarea id="branchRouting" style="min-height:90px" placeholder="main -1001234567890&#10;develop -1009876543210&#10;* -1000000000"></textarea>
+      <div class="hint-label" style="margin-top:4px">Use <code>*</code> for a wildcard default. Empty = use primary chat.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title"><span class="sec-icon">📂</span>Log File Watcher</div>
+    <div class="toggles" style="grid-template-columns:1fr">
+      ${toggle('notifyLogPattern', '🔔 Notify on log pattern match', s.notifyOnLogPattern as boolean)}
+    </div>
+    <div class="field" style="margin-top:14px">
+      <label>Log files to watch <span class="hint-label">one path per line (relative or absolute)</span></label>
+      <textarea id="logWatchFiles" style="min-height:90px" placeholder="logs/build.log&#10;logs/test-output.log&#10;/var/log/app.log">${s.logWatchFiles}</textarea>
+    </div>
+  </div>
+
   <div class="actions">
     <button class="btn primary" onclick="saveAdvanced()"><span class="btn-icon">💾</span>Save Advanced Settings</button>
   </div>
@@ -737,7 +780,10 @@ function save() {
     parseMode: document.getElementById('parseMode')?.value||'Markdown',
     maxCodeLength: parseInt(document.getElementById('maxCodeLength')?.value)||3000,
     additionalChats: document.getElementById('additionalChats')?.value||'',
-    autoSendOnError: document.getElementById('autoSendOnError')?.checked||false
+    autoSendOnError: document.getElementById('autoSendOnError')?.checked||false,
+    branchRouting: document.getElementById('branchRouting')?.value||'',
+    logWatchFiles: document.getElementById('logWatchFiles')?.value||'',
+    notifyOnLogPattern: document.getElementById('notifyLogPattern')?.checked||false
   });
 }
 function saveAdvanced() {
@@ -761,7 +807,10 @@ function saveAdvanced() {
     parseMode:               document.getElementById('parseMode')?.value||'Markdown',
     maxCodeLength:           parseInt(document.getElementById('maxCodeLength')?.value)||3000,
     additionalChats:         document.getElementById('additionalChats')?.value||'',
-    autoSendOnError:         document.getElementById('autoSendOnError')?.checked||false
+    autoSendOnError:         document.getElementById('autoSendOnError')?.checked||false,
+    branchRouting:           document.getElementById('branchRouting')?.value||'',
+    logWatchFiles:           document.getElementById('logWatchFiles')?.value||'',
+    notifyOnLogPattern:      document.getElementById('notifyLogPattern')?.checked||false
   });
 }
 function test() { vscode.postMessage({command:'test'}); showAlert('alert1','Sending test message…','info'); }

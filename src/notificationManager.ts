@@ -2,18 +2,32 @@ import * as vscode from 'vscode';
 import { TelegramService } from './telegramService';
 import { GitIntegration } from './gitIntegration';
 import { DiagnosticsReporter } from './diagnosticsReporter';
+import { BranchRouter } from './branchRouter';
+import { LogFileWatcher } from './logFileWatcher';
 
 export class NotificationManager {
   private _gitIntegration: GitIntegration;
   private _diagnostics: DiagnosticsReporter;
   private _fileWatcher: vscode.FileSystemWatcher | undefined;
+  private _branchRouter: BranchRouter;
+  private _logWatcher: LogFileWatcher;
 
   constructor(
     private _service: TelegramService,
     private _context: vscode.ExtensionContext
   ) {
+    this._branchRouter = new BranchRouter(_service.getChatId());
     this._gitIntegration = new GitIntegration(_service);
-    this._diagnostics = new DiagnosticsReporter(_service);
+    this._diagnostics = new DiagnosticsReporter(_service, this._branchRouter);
+    this._logWatcher = new LogFileWatcher(_service, this._branchRouter);
+  }
+
+  getBranchRouter(): BranchRouter { return this._branchRouter; }
+  getLogFileWatcher(): LogFileWatcher { return this._logWatcher; }
+
+  private async _send(text: string, chatIdOverride?: string, silent = false): Promise<boolean> {
+    const target = chatIdOverride ?? this._branchRouter.resolve(this._service.getChatId());
+    return this._service.sendMessage(text, target, silent);
   }
 
   register(): void {
@@ -29,12 +43,12 @@ export class NotificationManager {
 
         if (e.exitCode === 0) {
           if (!cfg.get<boolean>('notifyOnBuildSuccess', true)) { return; }
-          await this._service.sendMessage(
+          await this._send(
             `✅ *Build Succeeded*\n\n📁 \`${ws}\`\n🔧 Task: \`${task}\`\n🕐 ${new Date().toLocaleTimeString()}`
           );
         } else {
           if (!cfg.get<boolean>('notifyOnBuildFailure', true)) { return; }
-          await this._service.sendMessage(
+          await this._send(
             `❌ *Build Failed*\n\n📁 \`${ws}\`\n🔧 Task: \`${task}\`\n🔴 Exit code: \`${e.exitCode ?? 'unknown'}\`\n🕐 ${new Date().toLocaleTimeString()}`
           );
         }
@@ -48,7 +62,7 @@ export class NotificationManager {
         const cfg = vscode.workspace.getConfiguration('telegramBridge');
         if (!cfg.get<boolean>('notifyOnDebugStart', false)) { return; }
         const ws = this._service.getWorkspaceName();
-        await this._service.sendMessage(
+        await this._send(
           `🐛 *Debug Started*\n\n📁 \`${ws}\`\n🔍 \`${session.name}\`\n🕐 ${new Date().toLocaleTimeString()}`,
           undefined, true
         );
@@ -58,7 +72,7 @@ export class NotificationManager {
         const cfg = vscode.workspace.getConfiguration('telegramBridge');
         if (!cfg.get<boolean>('notifyOnDebugStop', false)) { return; }
         const ws = this._service.getWorkspaceName();
-        await this._service.sendMessage(
+        await this._send(
           `🏁 *Debug Ended*\n\n📁 \`${ws}\`\n🔍 \`${session.name}\`\n🕐 ${new Date().toLocaleTimeString()}`,
           undefined, true
         );
@@ -73,7 +87,7 @@ export class NotificationManager {
         if (!cfg.get<boolean>('notifyOnFileSave', false)) { return; }
         const file = doc.fileName.split('/').pop() ?? doc.fileName;
         const ws   = this._service.getWorkspaceName();
-        await this._service.sendMessage(
+        await this._send(
           `💾 *File Saved*\n\n📁 \`${ws}\`\n📄 \`${file}\``,
           undefined, true
         );
@@ -88,6 +102,9 @@ export class NotificationManager {
 
     // ── Diagnostics watcher ──────────────────────────────────
     this._diagnostics.watchErrors();
+
+    // ── Log file watcher ─────────────────────────────────────
+    this._logWatcher.start(ctx);
 
     // ── Config changes ───────────────────────────────────────
     ctx.subscriptions.push(
@@ -117,6 +134,7 @@ export class NotificationManager {
     this._disposeFileWatcher();
     this._gitIntegration.dispose();
     this._diagnostics.dispose();
+    this._logWatcher.dispose();
   }
 
   private _disposeFileWatcher(): void {
@@ -144,7 +162,7 @@ export class NotificationManager {
         
         const file = uri.fsPath.split('/').pop() ?? uri.fsPath;
         const ws = this._service.getWorkspaceName();
-        await this._service.sendMessage(
+        await this._send(
           `📝 *File Changed*\n\n📁 \`${ws}\`\n📄 \`${file}\`\n🕐 ${new Date().toLocaleTimeString()}`,
           undefined, true
         );
