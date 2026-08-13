@@ -9,6 +9,7 @@ export interface ScheduledMessage {
   chatId?: string;
   label?: string;
   sent?: boolean;
+  recurrence?: 'hourly' | 'daily' | 'weekly';
 }
 
 export class SchedulerManager {
@@ -21,7 +22,6 @@ export class SchedulerManager {
   ) {}
 
   start(): void {
-    // Check every 30 seconds
     this._timer = setInterval(() => this._tick(), 30_000);
   }
 
@@ -37,23 +37,38 @@ export class SchedulerManager {
     let changed = false;
 
     for (const msg of messages) {
-      if (!msg.sent && msg.sendAt <= now) {
+      if (msg.sent) { continue; }
+      if (msg.sendAt <= now) {
         const text = this._templateMgr.resolveVariables(msg.text);
         await this._service.sendMessage(text, msg.chatId);
-        msg.sent = true;
-        changed = true;
         vscode.window.showInformationMessage(`⏰ Scheduled message sent: "${msg.label ?? msg.text.substring(0, 40)}"`);
+        if (msg.recurrence) {
+          const nextSendAt = this._nextRecurrence(now, msg.recurrence);
+          msg.sendAt = nextSendAt;
+          console.log(`[TelegramBridge] Recurring "${msg.label ?? msg.id}" rescheduled for ${new Date(nextSendAt).toLocaleString()}`);
+        } else {
+          msg.sent = true;
+        }
+        changed = true;
       }
     }
 
     if (changed) {
-      // Remove sent messages older than 1 day
       const pruned = messages.filter(m => !m.sent || (m.sendAt > now - 86_400_000));
       await cfg.update('scheduledMessages', pruned, vscode.ConfigurationTarget.Global);
     }
   }
 
-  async schedule(text: string, sendAt: Date, label?: string, chatId?: string): Promise<void> {
+  private _nextRecurrence(fromMs: number, recurrence: 'hourly' | 'daily' | 'weekly'): number {
+    switch (recurrence) {
+      case 'hourly':   return fromMs + 3_600_000;
+      case 'daily':    return fromMs + 86_400_000;
+      case 'weekly':   return fromMs + 604_800_000;
+      default:         return fromMs + 3_600_000;
+    }
+  }
+
+  async schedule(text: string, sendAt: Date, label?: string, chatId?: string, recurrence?: 'hourly' | 'daily' | 'weekly'): Promise<void> {
     const cfg = vscode.workspace.getConfiguration('telegramBridge');
     const messages = cfg.get<ScheduledMessage[]>('scheduledMessages', []);
     messages.push({
@@ -62,7 +77,8 @@ export class SchedulerManager {
       sendAt: sendAt.getTime(),
       chatId,
       label,
-      sent: false
+      sent: false,
+      recurrence
     });
     await cfg.update('scheduledMessages', messages, vscode.ConfigurationTarget.Global);
   }
@@ -107,22 +123,26 @@ export class ScheduledItem extends vscode.TreeItem {
     const sendAt = new Date(scheduled.sendAt);
     const label = scheduled.label ?? scheduled.text.substring(0, 40);
     super(label, vscode.TreeItemCollapsibleState.None);
-    
+
     const remaining = scheduled.sendAt - Date.now();
     const minutes = Math.round(remaining / 60_000);
     const relativeTime = minutes < 60 ? `${minutes}m` : minutes < 1440 ? `${Math.round(minutes/60)}h` : `${Math.round(minutes/1440)}d`;
-    
+
     this.description = `${relativeTime} • ${sendAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    
+    if (scheduled.recurrence) {
+      this.description += ` [${scheduled.recurrence}]`;
+    }
+
     this.tooltip = new vscode.MarkdownString(
       `**Scheduled:** ${sendAt.toLocaleString()}\n\n` +
       '---\n\n' +
       `${scheduled.text}\n\n` +
       '---\n\n' +
-      `*Will send in ${relativeTime}*`
+      `*Will send in ${relativeTime}*` +
+      (scheduled.recurrence ? `\n*Recurrence: ${scheduled.recurrence}*` : '')
     );
     this.tooltip.isTrusted = true;
-    
+
     this.iconPath = new vscode.ThemeIcon('clock', new vscode.ThemeColor('symbolIcon.clockForeground'));
     this.contextValue = 'scheduled';
   }

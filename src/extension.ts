@@ -237,33 +237,38 @@ telegramService.registerLiveShareHandler((msg: { chatId: string; senderName: str
     if (ok) { vscode.window.showInformationMessage('📨 Terminal output sent!'); }
   });
 
-  // Schedule message
+  // Schedule message (one-shot or recurring)
   reg(context, 'telegramBridge.scheduleMessage', async () => {
     if (!telegramService.isConnected()) { promptConnect(); return; }
 
-    const text = await vscode.window.showInputBox({ prompt: 'Message to schedule', placeHolder: 'Your message…', ignoreFocusOut: true });
+    const text = await vscode.window.showInputBox({ prompt: 'Message to schedule', placeHolder: 'Your message...', ignoreFocusOut: true });
     if (!text) { return; }
 
     const label = await vscode.window.showInputBox({ prompt: 'Label for this scheduled message (optional)', ignoreFocusOut: true });
 
-    const options = [
-      { label: '⏱ In 5 minutes',  minutes: 5 },
-      { label: '⏱ In 15 minutes', minutes: 15 },
-      { label: '⏱ In 30 minutes', minutes: 30 },
-      { label: '⏱ In 1 hour',     minutes: 60 },
-      { label: '⏱ In 2 hours',    minutes: 120 },
-      { label: '⏱ In 1 day',      minutes: 1440 },
+    const timeOptions = [
+      { label: '⏱ In 5 minutes',  minutes: 5,  recurrence: undefined as string | undefined },
+      { label: '⏱ In 15 minutes', minutes: 15, recurrence: undefined },
+      { label: '⏱ In 30 minutes', minutes: 30, recurrence: undefined },
+      { label: '⏱ In 1 hour',     minutes: 60, recurrence: undefined },
+      { label: '⏱ In 2 hours',    minutes: 120, recurrence: undefined },
+      { label: '⏱ In 1 day',      minutes: 1440, recurrence: undefined },
+      { label: '🔁 Hourly (starts now)', minutes: 0, recurrence: 'hourly' },
+      { label: '📅 Daily at same time', minutes: 0, recurrence: 'daily' },
+      { label: '📆 Weekly',           minutes: 0, recurrence: 'weekly' },
     ];
 
-    const pick = await vscode.window.showQuickPick(options.map(o => o.label), { placeHolder: 'Send when?' });
+    const pick = await vscode.window.showQuickPick(timeOptions.map(o => o.label), { placeHolder: 'Send when?' });
     if (!pick) { return; }
 
-    const minutes = options.find(o => o.label === pick)?.minutes ?? 5;
-    const sendAt  = new Date(Date.now() + minutes * 60_000);
+    const chosen = timeOptions.find(o => o.label === pick)!;
+    const sendAt = new Date(Date.now() + chosen.minutes * 60_000);
+    const recurrence = chosen.recurrence as 'hourly' | 'daily' | 'weekly' | undefined;
 
-    await schedulerManager.schedule(text, sendAt, label ?? text.substring(0, 40));
+    await schedulerManager.schedule(text, sendAt, label ?? text.substring(0, 40), undefined, recurrence);
     schedulerProvider.refresh();
-    vscode.window.showInformationMessage(`⏰ Message scheduled for ${sendAt.toLocaleTimeString()}`);
+    const recurringTag = recurrence ? ` [${recurrence}]` : '';
+    vscode.window.showInformationMessage(`⏰ Message scheduled${recurringTag} for ${sendAt.toLocaleTimeString()}`);
   });
 
   // Manage templates → open webview on templates tab
@@ -594,7 +599,73 @@ telegramService.registerLiveShareHandler((msg: { chatId: string; senderName: str
     if (ok) { vscode.window.showInformationMessage(`📨 ${fileName} sent!`); }
   });
 
+  // Reply to Telegram message from inbox
+  reg(context, 'telegramBridge.replyToMessage', async (messageId?: unknown) => {
+    if (!telegramService.isConnected()) { promptConnect(); return; }
+    if (typeof messageId !== 'number') {
+      vscode.window.showErrorMessage('❌ No message selected. Click a message in the Inbox first.');
+      return;
+    }
+    const text = await vscode.window.showInputBox({
+      prompt: `Reply to message #${messageId}`,
+      placeHolder: 'Type your reply...',
+      ignoreFocusOut: true
+    });
+    if (!text) { return; }
+    const ok = await telegramService.replyToMessage(messageId, text);
+    if (ok) { vscode.window.showInformationMessage('📨 Reply sent!'); }
+    else    { vscode.window.showErrorMessage('❌ Failed to send reply.'); }
+  });
+
+  // Capture terminal output
+  reg(context, 'telegramBridge.captureTerminal', async () => {
+    if (!telegramService.isConnected()) { promptConnect(); return; }
+    const terms = vscode.window.terminals;
+    if (terms.length === 0) {
+      vscode.window.showInformationMessage('No active terminals.');
+      return;
+    }
+    const pick = await vscode.window.showQuickPick(
+      terms.map(t => ({ label: t.name, detail: t.processId ? `PID ${t.processId}` : '', item: t })),
+      { placeHolder: 'Choose a terminal to capture output from...' }
+    );
+    if (!pick) { return; }
+    // Show paste-instruction since terminal output cannot be read directly from API
+    const ws = telegramService.getWorkspaceName();
+    const branch = notificationMgr.getBranchRouter().getBranch();
+    const ok = await telegramService.sendMessage(
+      `💻 *Terminal — \`${pick.label}\`*\n\n📁 \`${ws}\`\n🌿 Branch: \`${branch}\`\n\nUse the \`Send Terminal Output\` command and paste your terminal content here.`
+    );
+    if (ok) { vscode.window.showInformationMessage('📨 Terminal info sent!'); }
+  });
+
+  // Send full file with line numbers
+  reg(context, 'telegramBridge.sendFullFile', async () => {
+    if (!telegramService.isConnected()) { promptConnect(); return; }
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) { vscode.window.showWarningMessage('No active editor.'); return; }
+    const doc = editor.document;
+    const file = doc.fileName.split('/').pop() ?? 'file';
+    const lines = doc.getText().split('\n');
+    const ws = telegramService.getWorkspaceName();
+    const branch = notificationMgr.getBranchRouter().getBranch();
+    let text = `📄 *Full File: \`${file}\`*\n\n`;
+    text += `📁 \`${ws}\` | 🌿 \`${branch}\`\n\n`;
+    for (let i = 0; i < lines.length; i++) {
+      const num = String(i + 1).padStart(4);
+      text += `${num} │ ${lines[i]}\n`;
+      if (text.length > 3800) {
+        text += '... (truncated)';
+        break;
+      }
+    }
+    const ok = await telegramService.sendMessage(text);
+    if (ok) { vscode.window.showInformationMessage(`📨 ${file} sent!`); }
+    else    { vscode.window.showErrorMessage('❌ Failed to send file.'); }
+  });
+
   // ─── Status bar ──────────────────────────────────────────────
+  statusBarManager.setBranchRouter(notificationMgr.getBranchRouter());
   statusBarManager.init();
 
   // ─── Periodic stats push to webview ─────────────────────────

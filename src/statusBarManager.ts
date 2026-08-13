@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
 import { TelegramService } from './telegramService';
+import { BranchRouter } from './branchRouter';
 
 export class StatusBarManager {
   private _item: vscode.StatusBarItem;
   private _connected = false;
   private _pollingActive = false;
+  private _branchRouter: BranchRouter | null = null;
 
   constructor(
     private _context: vscode.ExtensionContext,
@@ -14,6 +16,8 @@ export class StatusBarManager {
     this._item.text = '$(telegram)';
     _context.subscriptions.push(this._item);
   }
+
+  setBranchRouter(router: BranchRouter): void { this._branchRouter = router; }
 
   init(): void {
     this.update();
@@ -44,15 +48,21 @@ export class StatusBarManager {
     const polling  = this._pollingActive;
     const botInfo  = this._service.getBotInfo();
     const profile  = cfg.get<string>('activeProfile', 'default');
+    const branch   = this._branchRouter?.getBranch() ?? '—';
 
     if (this._connected) {
       const statusParts: string[] = [];
       if (polling) statusParts.push('📥');
       if (notifyOn) statusParts.push('🔔');
       const statusIcon = statusParts.length > 0 ? ` ${statusParts.join('')}` : '';
-      
+
       this._item.text = `$(telegram)${statusIcon} ${botInfo?.username ?? 'Connected'}`;
-      
+
+      const routeInfo = this._branchRouter?.getActiveRoute();
+      const branchLine = routeInfo
+        ? `**Branch:** \`${routeInfo.branch}\` → \`@${routeInfo.chatId.substring(0, 8)}\`  \n`
+        : `**Branch:** \`${branch}\`  \n`;
+
       const md = new vscode.MarkdownString(
         '**✈️ Telegram Bridge**  \n' +
         '✅ *Connected*\n\n' +
@@ -60,6 +70,7 @@ export class StatusBarManager {
         `**Bot:** @${botInfo?.username ?? 'unknown'}  \n` +
         `**Profile:** \`${profile}\`  \n\n` +
         '--- \n\n' +
+        branchLine +
         `📥 Polling: **${polling ? 'ON' : 'OFF'}**  \n` +
         `🔔 Notifications: **${notifyOn ? 'ON' : 'OFF'}**  \n\n` +
         '--- \n\n' +

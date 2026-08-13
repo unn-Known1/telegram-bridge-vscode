@@ -2,7 +2,7 @@
   "name": "telegram-bridge",
   "displayName": "Telegram Bridge - VS Code Telegram Integration",
   "description": "Send messages, code, files from VS Code to Telegram. Get build notifications, debug alerts, terminal control, and execute commands directly from Telegram. The ultimate developer productivity tool.",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "publisher": "telegram-bridge",
   "icon": "media/icon.png",
   "galleryBanner": { "color": "#0d1b2a", "theme": "dark" },
@@ -48,7 +48,10 @@
       { "command": "telegramBridge.listTerminals",     "title": "Telegram Bridge: List Terminals",          "icon": "$(list-flat)" },
       { "command": "telegramBridge.deleteProfile",     "title": "Telegram Bridge: Delete Profile",            "icon": "$(trash)" },
       { "command": "telegramBridge.clearInbox",        "title": "Telegram Bridge: Clear Inbox",               "icon": "$(trash)" },
-      { "command": "telegramBridge.sendLogFile",       "title": "Telegram Bridge: Send Log File",             "icon": "$(file-text)" }
+      { "command": "telegramBridge.sendLogFile",       "title": "Telegram Bridge: Send Log File",             "icon": "$(file-text)" },
+      { "command": "telegramBridge.replyToMessage",    "title": "Telegram Bridge: Reply to Message",            "icon": "$(reply)" },
+      { "command": "telegramBridge.captureTerminal",   "title": "Telegram Bridge: Capture Terminal Output",        "icon": "$(terminal)" },
+      { "command": "telegramBridge.sendFullFile",      "title": "Telegram Bridge: Send Full File with Line Numbers","icon": "$(file-code)" }
     ],
     "menus": {
       "editor/context": [

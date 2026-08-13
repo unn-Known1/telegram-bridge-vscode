@@ -88,7 +88,7 @@ export class InboxItem extends vscode.TreeItem {
   constructor(public readonly message: TelegramMessage) {
     const sender = message.from?.first_name ?? 'Unknown';
     const text = message.text ?? '[media]';
-    const short = text.length > 50 ? text.substring(0, 50) + '…' : text;
+    const short = text.length > 50 ? text.substring(0, 50) + '...' : text;
     super(`${sender}: ${short}`, vscode.TreeItemCollapsibleState.None);
 
     const date = new Date(message.date * 1000);
@@ -101,6 +101,7 @@ export class InboxItem extends vscode.TreeItem {
     );
     this.tooltip.isTrusted = true;
     this.iconPath = new vscode.ThemeIcon('comment', new vscode.ThemeColor('charts.blue'));
+    this.command = { command: 'telegramBridge.replyToMessage', title: 'Reply', arguments: [message.message_id] };
     this.contextValue = 'inboxItem';
   }
 }

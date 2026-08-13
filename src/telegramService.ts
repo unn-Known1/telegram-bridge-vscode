@@ -394,6 +394,24 @@ export class TelegramService {
     return !!ok;
   }
 
+  // ─── Inline Reply ─────────────────────────────────────────
+  async replyToMessage(messageId: number, text: string, chatId?: string, silent = false): Promise<boolean> {
+    if (!this._botToken || !this._connected) { return false; }
+    const cfg = vscode.workspace.getConfiguration('telegramBridge');
+    const target = chatId ?? this._chatId;
+    if (!target) { return false; }
+    const ok = await this._apiCall('sendMessage', {
+      chat_id: target,
+      text,
+      parse_mode: cfg.get<string>('parseMode', 'Markdown'),
+      reply_to_message_id: messageId,
+      disable_notification: silent || cfg.get<boolean>('silentNotifications', false)
+    });
+    const short = text.length > 80 ? text.substring(0, 80) + '...' : text;
+    this._log({ timestamp: new Date(), type: ok ? 'success' : 'error', message: short, direction: 'outbound' });
+    return !!ok;
+  }
+
   async sendPoll(question: string, options: string[], chatId?: string): Promise<boolean> {
     const target = chatId ?? this._chatId;
     if (!target || !this._botToken) { return false; }
