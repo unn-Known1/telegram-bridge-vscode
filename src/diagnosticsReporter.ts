@@ -44,7 +44,7 @@ export class DiagnosticsReporter {
     const errors   = filtered.filter(f => f.diag.severity === vscode.DiagnosticSeverity.Error);
     const warnings = filtered.filter(f => f.diag.severity === vscode.DiagnosticSeverity.Warning);
 
-    let text = `📋 *Workspace Diagnostics*\n\n`;
+    let text = '📋 *Workspace Diagnostics*\n\n';
     text += `📁 \`${workspace}\`\n`;
     text += `🔴 Errors: ${errors.length} | 🟡 Warnings: ${warnings.length}\n\n`;
 

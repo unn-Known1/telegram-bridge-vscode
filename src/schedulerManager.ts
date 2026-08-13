@@ -116,9 +116,9 @@ export class ScheduledItem extends vscode.TreeItem {
     
     this.tooltip = new vscode.MarkdownString(
       `**Scheduled:** ${sendAt.toLocaleString()}\n\n` +
-      `---\n\n` +
+      '---\n\n' +
       `${scheduled.text}\n\n` +
-      `---\n\n` +
+      '---\n\n' +
       `*Will send in ${relativeTime}*`
     );
     this.tooltip.isTrusted = true;

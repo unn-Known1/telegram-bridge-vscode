@@ -13,7 +13,7 @@ export async function sendSystemInfo(service: TelegramService): Promise<boolean>
   const ext      = vscode.extensions.all.filter(e => e.isActive).length;
   const folders  = vscode.workspace.workspaceFolders?.length ?? 0;
 
-  let text = `💻 *System Info*\n\n`;
+  let text = '💻 *System Info*\n\n';
   text += `📁 Workspace: \`${ws}\`\n`;
   text += `🖥️ OS: \`${platform}\`\n`;
   text += `⚙️ CPU: \`${cpus[0]?.model ?? 'Unknown'} (${cpus.length} cores)\`\n`;

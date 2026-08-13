@@ -454,15 +454,6 @@ a.link:hover{color:#60A5FA}
   </div>
 
 </div>
-      ${toggle('enableWebhook', '🔗 Enable Webhook (alternative to polling)', s.enableWebhook as boolean)}
-    </div>
-    <div class="field" style="margin-top:12px">
-      <label>Webhook port</label>
-      <input type="number" id="webhookPort" value="${s.webhookPort}" min="1024" max="65535" style="width:120px" />
-    </div>
-  </div>
-
-</div>
 
 <!-- ════════════════ COMPOSER TAB ════════════════ -->
 <div class="tab-pane ${(s.initialTab as string) === 'compose' ? 'active' : ''}" id="tab-compose">
@@ -715,17 +706,17 @@ function updatePreview() {
 function clearCompose() { document.getElementById('composeText').value=''; updatePreview(); }
 
 const QUICK_MSGS = {
-  deploy:     '🚀 Deploy triggered from VS Code\\n📁 workspace\\n🕐 ' + new Date().toLocaleTimeString(),
-  build_ok:   '✅ Build passed!\\n📁 workspace\\n🕐 ' + new Date().toLocaleTimeString(),
-  build_fail: '❌ Build failed!\\n📁 workspace\\n🕐 ' + new Date().toLocaleTimeString(),
+  deploy:     '🚀 Deploy triggered from VS Code\n📁 workspace\n🕐 ' + new Date().toLocaleTimeString(),
+  build_ok:   '✅ Build passed!\n📁 workspace\n🕐 ' + new Date().toLocaleTimeString(),
+  build_fail: '❌ Build failed!\n📁 workspace\n🕐 ' + new Date().toLocaleTimeString(),
   brb:        '☕ Taking a break, back soon',
-  hotfix:     '🔧 Hotfix pushed\\n📁 workspace',
-  review:     '👀 Please review when you can\\n📁 workspace'
+  hotfix:     '🔧 Hotfix pushed\n📁 workspace',
+  review:     '👀 Please review when you can\n📁 workspace'
 };
 
 function save() {
   const btn=document.getElementById('saveBtn');
-  btn.innerHTML='<span class="spinner"></span> Connecting…'; btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Connecting...'; btn.disabled=true;
   vscode.postMessage({command:'save',
     botToken: document.getElementById('botToken').value.trim(),
     chatId: document.getElementById('chatId').value.trim(),
@@ -735,6 +726,7 @@ function save() {
     notifyOnDebugStart:      document.getElementById('notifyDebugStart').checked,
     notifyOnDebugStop:       document.getElementById('notifyDebugStop').checked,
     notifyOnFileSave:        document.getElementById('notifyFileSave').checked,
+    notifyOnFileChange:      document.getElementById('notifyFileChange').checked,
     notifyOnGitCommit:       document.getElementById('notifyGitCommit').checked,
     notifyOnDiagnosticError: document.getElementById('notifyDiagnostic').checked,
     enablePolling:           document.getElementById('enablePolling').checked,
@@ -840,7 +832,41 @@ window.addEventListener('message', e => {
       showAlert('alert1','Disconnected.','info');
       break;
     case 'templatesUpdated':
-      // re-render template list
+      // Re-render template list by reloading the webview HTML
+      if (ConfigWebview.currentPanel) {
+        const rebuildState = () => {
+          const cfg = vscode.workspace.getConfiguration('telegramBridge');
+          return {
+            botToken: cfg.get<string>('botToken', ''),
+            chatId: cfg.get<string>('chatId', ''),
+            messagePrefix: cfg.get<string>('messagePrefix', '💻 VS Code'),
+            notifyOnBuildSuccess: cfg.get<boolean>('notifyOnBuildSuccess', true),
+            notifyOnBuildFailure: cfg.get<boolean>('notifyOnBuildFailure', true),
+            notifyOnDebugStart: cfg.get<boolean>('notifyOnDebugStart', false),
+            notifyOnDebugStop: cfg.get<boolean>('notifyOnDebugStop', false),
+            notifyOnFileSave: cfg.get<boolean>('notifyOnFileSave', false),
+            notifyOnFileChange: cfg.get<boolean>('notifyOnFileChange', false),
+            fileWatcherPatterns: cfg.get<string[]>('fileWatcherPatterns', []).join('\n'),
+            notifyOnGitCommit: cfg.get<boolean>('notifyOnGitCommit', false),
+            notifyOnDiagnosticError: cfg.get<boolean>('notifyOnDiagnosticError', false),
+            enablePolling: cfg.get<boolean>('enablePolling', false),
+            pollingInterval: cfg.get<number>('pollingInterval', 5),
+            enableWebhook: cfg.get<boolean>('enableWebhook', false),
+            webhookPort: cfg.get<number>('webhookPort', 3456),
+            silentNotifications: cfg.get<boolean>('silentNotifications', false),
+            parseMode: cfg.get<string>('parseMode', 'Markdown'),
+            maxCodeLength: cfg.get<number>('maxCodeLength', 3000),
+            additionalChats: cfg.get<string[]>('additionalChats', []).join('\n'),
+            autoSendOnError: cfg.get<boolean>('autoSendOnError', false),
+            connected: telegramService.isConnected(),
+            botInfo: telegramService.getBotInfo(),
+            templates: templateManager.getAllTemplates(),
+            initialTab: 'templates',
+            offlineQueueLength: telegramService.getOfflineQueueLength()
+          };
+        };
+        ConfigWebview.currentPanel.webview.html = ConfigWebview._getHtml(rebuildState());
+      }
       break;
     case 'stats':
       document.getElementById('statTotal').textContent = msg.total;

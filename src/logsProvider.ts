@@ -115,7 +115,7 @@ class LogItem extends vscode.TreeItem {
     this.tooltip = new vscode.MarkdownString(
       `**${entry.direction.toUpperCase()}** • ${entry.type.toUpperCase()}\n\n` +
       `${entry.message}\n\n` +
-      `---\n\n` +
+      '---\n\n' +
       `*${entry.timestamp.toLocaleString()}*`
     );
     this.tooltip.isTrusted = true;

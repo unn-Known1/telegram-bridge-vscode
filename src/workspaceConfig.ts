@@ -91,7 +91,7 @@ export class WorkspaceConfigManager {
 
     const apply = async (key: string, value: unknown) => {
       if (value !== undefined) {
-        await cfg.update(`telegramBridge.${key}`, value, vscode.ConfigurationTarget.Workspace);
+        await cfg.update(key, value, vscode.ConfigurationTarget.Workspace);
       }
     };
 

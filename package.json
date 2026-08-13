@@ -45,7 +45,9 @@
       { "command": "telegramBridge.toggleWebhook",       "title": "Telegram Bridge: Toggle Webhook",            "icon": "$(broadcast)" },
       { "command": "telegramBridge.sendWithKeyboard",    "title": "Telegram Bridge: Send with Keyboard",       "icon": "$(keyboard)" },
       { "command": "telegramBridge.openTerminal",       "title": "Telegram Bridge: Open Telegram Terminal",  "icon": "$(terminal)" },
-      { "command": "telegramBridge.listTerminals",     "title": "Telegram Bridge: List Terminals",          "icon": "$(list-flat)" }
+      { "command": "telegramBridge.listTerminals",     "title": "Telegram Bridge: List Terminals",          "icon": "$(list-flat)" },
+      { "command": "telegramBridge.deleteProfile",     "title": "Telegram Bridge: Delete Profile",            "icon": "$(trash)" },
+      { "command": "telegramBridge.clearInbox",        "title": "Telegram Bridge: Clear Inbox",               "icon": "$(trash)" }
     ],
     "menus": {
       "editor/context": [
@@ -112,7 +114,8 @@
         "telegramBridge.diagnosticsMinSeverity":  { "type": "string",  "default": "Error", "enum": ["Error","Warning","Information","Hint"] },
         "telegramBridge.logRetentionDays":        { "type": "number",  "default": 7 },
         "telegramBridge.codeSnippetLanguage":     { "type": "boolean", "default": true },
-        "telegramBridge.autoSendOnError":         { "type": "boolean", "default": false }
+        "telegramBridge.autoSendOnError":         { "type": "boolean", "default": false },
+        "telegramBridge.showStatusBar":           { "type": "boolean", "default": true, "description": "Show the status bar indicator" }
       }
     },
     "viewsContainers": {

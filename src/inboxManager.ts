@@ -96,7 +96,7 @@ export class InboxItem extends vscode.TreeItem {
     this.tooltip = new vscode.MarkdownString(
       `**From:** ${sender} @${message.from?.username ?? 'unknown'}\n` +
       `**Time:** ${date.toLocaleString()}\n\n` +
-      `---\n\n` +
+      '---\n\n' +
       `${text}`
     );
     this.tooltip.isTrusted = true;

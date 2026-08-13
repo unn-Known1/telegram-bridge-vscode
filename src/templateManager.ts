@@ -169,7 +169,7 @@ export class TemplateItem extends vscode.TreeItem {
     this.tooltip = new vscode.MarkdownString(
       `**${template.name}**\n\n` +
       `${template.text.substring(0, 150)}${template.text.length > 150 ? '...' : ''}\n\n` +
-      `---\n\n` +
+      '---\n\n' +
       `*Category: ${template.category ?? 'General'}*`
     );
     this.tooltip.isTrusted = true;

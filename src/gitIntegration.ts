@@ -63,7 +63,7 @@ export class GitIntegration {
     if (status) {
       text += `*Changed files:*\n\`\`\`\n${status.substring(0, 400)}\n\`\`\`\n\n`;
     } else {
-      text += `*Working tree: clean* ✅\n\n`;
+      text += '*Working tree: clean* ✅\n\n';
     }
 
     if (log) {

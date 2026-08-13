@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as os from 'os';
 
 import { TelegramService } from './telegramService';
 import { StatusBarManager } from './statusBarManager';
@@ -96,14 +95,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   });
 
   telegramService.registerCommand('help', 'Show available commands', async () => {});
-telegramService.registerLiveShareHandler((msg) => {
+telegramService.registerLiveShareHandler((msg: { chatId: string; senderName: string; text: string; timestamp: number }) => {
   const name = msg.senderName || 'Live Share user';
   const text = `🟢 Live Share [${name}]: ${msg.text}`;
   telegramService.sendMessage(text).catch(() => {});
 });
 
   telegramService.onCallbackQuery(async (data) => {
-    const { data: callbackData, messageId, chatId } = data;
+    const { data: callbackData, messageId } = data;
     await telegramService.answerCallback(messageId.toString(), 'Command received!');
     
     if (callbackData === 'btn_build') {
@@ -363,6 +362,30 @@ telegramService.registerLiveShareHandler((msg) => {
     vscode.window.showInformationMessage(`✅ Profile "${label}" added.`);
   });
 
+  // Delete profile
+  reg(context, 'telegramBridge.deleteProfile', async (profileName?: unknown) => {
+    if (!profileName || typeof profileName !== 'string') {
+      const profiles = profileManager.getProfiles();
+      const active = profileManager.getActiveProfileName();
+      const items = Object.values(profiles)
+        .filter(p => p.name !== 'default')
+        .map(p => ({ label: p.label, description: p.name === active ? '● active' : '', detail: `Chat: ${p.chatId}`, name: p.name }));
+      if (items.length === 0) {
+        vscode.window.showInformationMessage('No custom profiles to delete.');
+        return;
+      }
+      const pick = await vscode.window.showQuickPick(items, { placeHolder: 'Select profile to delete...' });
+      if (!pick) { return; }
+      await profileManager.deleteProfile(pick.name);
+      profilesProvider.refresh();
+      vscode.window.showInformationMessage(`✅ Profile "${pick.label}" deleted.`);
+      return;
+    }
+    await profileManager.deleteProfile(profileName as string);
+    profilesProvider.refresh();
+    vscode.window.showInformationMessage(`✅ Profile "${profileName}" deleted.`);
+  });
+
   // Toggle build notifications
   reg(context, 'telegramBridge.toggleNotifications', async () => {
     const cfg   = vscode.workspace.getConfiguration('telegramBridge');
@@ -446,6 +469,13 @@ telegramService.registerLiveShareHandler((msg) => {
 
   // Clear logs
   reg(context, 'telegramBridge.clearLogs', () => logsProvider.clear());
+
+  // Clear inbox
+  reg(context, 'telegramBridge.clearInbox', () => {
+    inboxManager.clear();
+    inboxProvider.refresh();
+    vscode.window.showInformationMessage('🗑️ Inbox cleared.');
+  });
 
   // Delete scheduled message
   reg(context, 'telegramBridge.deleteScheduled', async (item: unknown) => {

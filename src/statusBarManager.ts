@@ -54,16 +54,16 @@ export class StatusBarManager {
       this._item.text = `$(telegram)${statusIcon} ${botInfo?.username ?? 'Connected'}`;
       
       const md = new vscode.MarkdownString(
-        `**✈️ Telegram Bridge**  \n` +
-        `✅ *Connected*\n\n` +
-        `--- \n\n` +
+        '**✈️ Telegram Bridge**  \n' +
+        '✅ *Connected*\n\n' +
+        '--- \n\n' +
         `**Bot:** @${botInfo?.username ?? 'unknown'}  \n` +
         `**Profile:** \`${profile}\`  \n\n` +
-        `--- \n\n` +
+        '--- \n\n' +
         `📥 Polling: **${polling ? 'ON' : 'OFF'}**  \n` +
         `🔔 Notifications: **${notifyOn ? 'ON' : 'OFF'}**  \n\n` +
-        `--- \n\n` +
-        `*Click to open settings*`
+        '--- \n\n' +
+        '*Click to open settings*'
       );
       md.isTrusted = true;
       this._item.tooltip = md;

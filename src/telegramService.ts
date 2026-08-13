@@ -59,6 +59,8 @@ interface TelegramCommand {
 
 export interface LiveShareMessage { chatId: string; senderName: string; text: string; timestamp: number; }
 
+export type LiveShareHandler = (msg: LiveShareMessage) => void;
+
 export class TelegramService {
   private _botToken = '';
   private _chatId = '';
@@ -74,6 +76,7 @@ export class TelegramService {
   private _connectionListeners: EventListener<boolean>[] = [];
   private _incomingListeners: EventListener<TelegramMessage>[] = [];
   private _callbackListeners: EventListener<{ data: string; messageId: number; chatId: number }>[] = [];
+  private _liveShareHandler: LiveShareHandler | null = null;
 
   constructor(private _context: vscode.ExtensionContext) {}
 
@@ -82,6 +85,7 @@ export class TelegramService {
   onConnectionChange(l: EventListener<boolean>)    { this._connectionListeners.push(l); }
   onIncomingMessage(l: EventListener<TelegramMessage>) { this._incomingListeners.push(l); }
   onCallbackQuery(l: EventListener<{ data: string; messageId: number; chatId: number }>) { this._callbackListeners.push(l); }
+  registerLiveShareHandler(h: LiveShareHandler): void { this._liveShareHandler = h; }
 
   private _emit<T>(list: EventListener<T>[], v: T) { list.forEach(l => l(v)); }
 
@@ -162,6 +166,7 @@ export class TelegramService {
                 messageId: cb.message?.message_id ?? 0,
                 chatId: cb.message?.chat.id ?? cb.from.id
               });
+              this.answerCallback(cb.id);
             }
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end('{}');
@@ -290,6 +295,10 @@ export class TelegramService {
     }
   }
 
+  handleIncomingMessage(message: TelegramMessage): void {
+    this._handleIncomingMessage(message);
+  }
+
   getCommands(): TelegramCommand[] {
     return [...this._commands];
   }
@@ -322,13 +331,7 @@ export class TelegramService {
     for (const upd of updates) {
       this._lastUpdateId = upd.update_id;
       if (upd.message) {
-        this._incoming(upd.message);
-        this._log({
-          timestamp: new Date(),
-          type: 'info',
-          message: `📨 ${upd.message.from?.first_name ?? 'Unknown'}: ${upd.message.text?.substring(0, 60) ?? '[media]'}`,
-          direction: 'inbound'
-        });
+        this.handleIncomingMessage(upd.message);
       }
     }
   }
